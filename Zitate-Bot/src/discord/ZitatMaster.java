@@ -55,26 +55,16 @@ public class ZitatMaster extends Bot {
 		setPresence(OnlineStatus.ONLINE, Activity.playing("C++"));
 		scores = new HashMap<String, Integer[]>();
 		rating = new HashMap<String, Zitat[]>();
-		addListener(new Listener('<', this, new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdSpiel(e, cmd_body);
-		}, "spiel", "s"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdGuess(e, cmd_body);
-		}, "guess", "g"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdErgebnisse(e, cmd_body);
-		}, "ergebnisse", "e"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdSkip(e, cmd_body);
-		}, "skip"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdStats(e, cmd_body);
-		}, "stats", "st"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdRate(e, cmd_body);
-		}, "rate", "r"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdTop(e, cmd_body);
-		}, "top", "t"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdSchach(e, cmd_body);
-		}, "schach"), new Command((GuildMessageReceivedEvent e, String[] cmd_body) -> {
-			cmdToggleRandomZitatAudio(e, cmd_body);
-		}, "toggleRandomZitatAudio", "togglerandomzitataudio", "trza")));
-
+		addListener(new Listener('<', this, 
+				new Command(this::cmdSpiel, "spiel", "s"), 
+				new Command(this::cmdGuess, "guess", "g"),
+				new Command(this::cmdErgebnisse, "ergebnisse", "e"),
+				new Command(this::cmdSkip, "skip"), 
+				new Command(this::cmdStats, "stats", "st"), 
+				new Command(this::cmdRate, "rate", "r"), 
+				new Command(this::cmdTop, "top", "t"), 
+				new Command(this::cmdSchach, "schach"), 
+				new Command(this::cmdToggleRandomZitatAudio, "toggleRandomZitatAudio", "togglerandomzitataudio", "trza")));
 	}
 
 	public void sendMessage(String msg, TextChannel channel) {
