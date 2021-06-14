@@ -56,8 +56,8 @@ public class ZitatMaster extends Bot {
 
 	boolean randomZitatAudio = false;
 	Timer t;
-	final int periodMillis = 20000;
-	final double probability = 0.7;
+	final int periodMillis = 5000;
+	final double probability = 0.01;
 	
 	
 	public ZitatMaster(String token) throws LoginException {

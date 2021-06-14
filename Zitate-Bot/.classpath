@@ -13,5 +13,7 @@
 	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/mbrola.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/schach.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/JDA-4.2.1_266-withDependencies.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/Lavalink.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/lavaplayer-1.2.39.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
