@@ -18,6 +18,7 @@ import java.util.TimerTask;
 import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
 import javax.sound.sampled.AudioFileFormat.Type;
+import javax.sound.sampled.AudioFormat;
 
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
@@ -33,6 +34,7 @@ import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.managers.AudioManager;
 import spiel.Brett;
 import spiel.Figur.Farbe;
 import spiel.Spielzug;
@@ -56,8 +58,11 @@ public class ZitatMaster extends Bot {
 
 	boolean randomZitatAudio = false;
 	Timer t;
-	final int periodMillis = 5000;
-	final double probability = 0.01;
+	final int periodMillis = 500000;
+	final double probability = 1;
+	
+	AudioHandler audio;
+	AudioManager manager;
 	
 	
 	public ZitatMaster(String token) throws LoginException {
@@ -492,11 +497,12 @@ public class ZitatMaster extends Bot {
 		if (voice != null) {
 			voice.allocate();
 
-			AudioPlayer audioplayer = new SingleFileAudioPlayer(filename, Type.WAVE);
+			AudioPlayer audioplayer = new SingleFileAudioPlayer(filename, Type.AU);
+			audioplayer.setAudioFormat(AudioHandler.Format);
 			voice.setAudioPlayer(audioplayer);
-
 			try {
-				voice.setRate(150);
+				
+				voice.setRate(150);;
 				voice.setPitch(120);
 				voice.setVolume(3);
 				voice.speak(s);
@@ -521,6 +527,15 @@ public class ZitatMaster extends Bot {
 		e.getChannel().sendMessage("gibts noch ned, Vollpfosten!");
 		
 		randomZitatAudio = (randomZitatAudio)? false : true;
+		
+		if(audio == null || manager == null) {
+			manager = e.getGuild().getAudioManager();
+			audio = new AudioHandler();
+			
+			manager.setSendingHandler(audio);
+		}
+		
+		
 		
 		if (randomZitatAudio) {
 			randomlyJoinRandomOccupiedChannel(e);
@@ -570,15 +585,11 @@ public class ZitatMaster extends Bot {
 			@Override
 			public void run() {
 				if (Math.random() < probability) {
-					joinRandomOccupiedChannel(e);
+					VoiceChannel vc = randomOccupiedVoiceChannel(e);
 					
-					try {
-						Thread.sleep(1000);
-					}catch (Exception x) {
-						x.printStackTrace();
-					}
-					
-					leaveChannel(e);
+					saveRandomZitatAsTTSOutputWav();
+					manager.openAudioConnection(vc);
+					audio.play("TTSOutput.opus");
 				}
 			}
 			
@@ -588,5 +599,4 @@ public class ZitatMaster extends Bot {
 	public void leaveChannel(GuildMessageReceivedEvent e) {
 		e.getGuild().getAudioManager().closeAudioConnection();
 	}
-
 }
