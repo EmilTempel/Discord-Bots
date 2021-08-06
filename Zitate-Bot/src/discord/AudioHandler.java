@@ -40,10 +40,11 @@ public class AudioHandler implements AudioSendHandler {
 					
 					ais.read(temp, 0, delta);
 					
-					b.add(ByteBuffer.wrap(temp));
+					b.add((ByteBuffer) ByteBuffer.wrap(temp).flip());
 				}
 			}
-
+			
+			ais.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -61,7 +62,7 @@ public class AudioHandler implements AudioSendHandler {
 	}
 	
 	public boolean isOpus() {
-		return true;
+		return false;
 		
 	}
 }

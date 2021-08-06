@@ -29,8 +29,10 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -75,7 +77,7 @@ public class ZitatMaster extends Bot {
 				new Command(this::cmdSkip, "skip"), new Command(this::cmdStats, "stats", "st"),
 				new Command(this::cmdRate, "rate", "r"), new Command(this::cmdTop, "top", "t"),
 				new Command(this::cmdSchach, "schach"), new Command(this::cmdToggleRandomZitatAudio,
-						"toggleRandomZitatAudio", "togglerandomzitataudio", "trza")));
+						"toggleRandomZitatAudio", "togglerandomzitataudio", "trza"), new Command(this::cmdLolius, "lolius")));
 	}
 
 	public void sendMessage(String msg, TextChannel channel) {
@@ -491,13 +493,58 @@ public class ZitatMaster extends Bot {
 		}
 		e.getChannel().sendFile(f).queue();
 	}
+	
+	public Member getRandomMember(GuildMessageReceivedEvent e) {
+		List<Role> r = e.getGuild().getRoles();
+		Role[] allowed = new Role[3];
+		int curr = 0;
+		
+		for (int i = 0; i < r.size(); i++) {
+			if (r.get(i).getName().equalsIgnoreCase("Big Potato") || r.get(i).getName().equalsIgnoreCase("Middl Potato") || r.get(i).getName().equalsIgnoreCase("Big Jucy Potato")) {
+				allowed[curr] = r.get(i);
+				curr++;
+			}
+		}
+		
+		List<Member> m0 = e.getGuild().getMembersWithRoles(allowed[0]);
+		System.out.println(m0.toString());
+		List<Member> m1 = e.getGuild().getMembersWithRoles(allowed[1]);
+		System.out.println(m1.toString());
+		List<Member> m2 = e.getGuild().getMembersWithRoles(allowed[2]);
+		System.out.println(m2.toString());
+		
+		for (int i = 0; i < m1.size(); i++) {
+			m0.add(m1.get(i));
+		}
+		System.out.println(m0.toString());
+		
+		for (int i = 0; i < m2.size(); i++) {
+			m0.add(m2.get(i));
+		}
+		System.out.println(m0.toString());
+		
+		int i = (int) (Math.random() * m0.size());
+		
+		Member erg = m0.get(i);
+		System.out.println(erg.toString());
+		
+		return erg;
+	}
+	
+	//temp
+	public void cmdLolius(GuildMessageReceivedEvent e, String[] cmd_body) {
+		
+		getRandomMember(e).modifyNickname("lolius").queue();
+		// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
+		// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
+	}
 
 	public void saveStringAsWav(String s, String filename) {
 		Voice voice = VoiceManager.getInstance().getVoice("kevin16");
 		if (voice != null) {
 			voice.allocate();
 
-			AudioPlayer audioplayer = new SingleFileAudioPlayer(filename, Type.AU);
+			AudioPlayer audioplayer = new SingleFileAudioPlayer(filename, Type.WAVE);
 			audioplayer.setAudioFormat(AudioHandler.Format);
 			voice.setAudioPlayer(audioplayer);
 			try {
@@ -589,7 +636,8 @@ public class ZitatMaster extends Bot {
 					
 					saveRandomZitatAsTTSOutputWav();
 					manager.openAudioConnection(vc);
-					audio.play("TTSOutput.opus");
+					audio.play("TTSOutput.wav");
+					
 				}
 			}
 			
