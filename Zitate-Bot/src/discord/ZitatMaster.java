@@ -499,6 +499,8 @@ public class ZitatMaster extends Bot {
 	}
 	
 	public Member getRandomMember(GuildMessageReceivedEvent e) {
+	//	System.out.println(e.getGuild(). + "       " + e.getGuild().getMemberCount());
+		
 		List<Role> r = e.getGuild().getRoles();
 		Role[] allowed = new Role[3];
 		int curr = 0;
@@ -539,7 +541,7 @@ public class ZitatMaster extends Bot {
 	public void cmdLolius(GuildMessageReceivedEvent e, String[] cmd_body) {
 		
 		getRandomMember(e).modifyNickname("lolius").queue();
-		// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
+		//System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
 		// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
 	}
 
