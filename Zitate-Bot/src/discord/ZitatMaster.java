@@ -66,12 +66,14 @@ public class ZitatMaster extends Bot {
 	AudioHandler audio;
 	AudioManager manager;
 	
+	Map<String, Boolean> access;
 	
 	public ZitatMaster(String token) throws LoginException {
 		super(token);
 		setPresence(OnlineStatus.ONLINE, Activity.playing("eh keine Rolle"));
 		scores = new HashMap<String, Integer[]>();
 		rating = new HashMap<String, Zitat[]>();
+		access = new HashMap<String, Boolean>();
 		addListener(new Listener('<', this, new Command(this::cmdSpiel, "spiel", "s"),
 				new Command(this::cmdGuess, "guess", "g"), new Command(this::cmdErgebnisse, "ergebnisse", "e"),
 				new Command(this::cmdSkip, "skip"), new Command(this::cmdStats, "stats", "st"),
@@ -408,6 +410,8 @@ public class ZitatMaster extends Bot {
 					erg = "Voted for: " + temp[r].getAll();
 
 					rating.put(name, null);
+					
+					access.put(name, true);
 				} else {
 					erg = "Zwischen 1 und 2 du Evolutionsbremse";
 				}
@@ -646,5 +650,14 @@ public class ZitatMaster extends Bot {
 	
 	public void leaveChannel(GuildMessageReceivedEvent e) {
 		e.getGuild().getAudioManager().closeAudioConnection();
+	}
+	
+	public boolean access(String name) {
+		if(access.get(name) == null) {
+			access.put(name, false);
+			return false;
+		}else {
+			return access.get(name);
+		}
 	}
 }

@@ -1,5 +1,8 @@
 package discord;
 
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -42,7 +45,19 @@ public class Listener extends ListenerAdapter {
 				}
 			}
 		}
-
 	}
+	
+	public void  onGuildVoiceJoin(GuildVoiceJoinEvent e) {
+		if(!zm.access(e.getMember().getUser().getName())) {
+			e.getGuild().kickVoiceMember(e.getMember()).queue();
+			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();
+			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher!").queue();
+		}
+	}
+	
+	public void  onGuildVoiceLeave(GuildVoiceLeaveEvent e) {
+		zm.access.put(e.getMember().getUser().getName(),false);
+	}
+	
 
 }
