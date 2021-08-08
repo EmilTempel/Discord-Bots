@@ -541,7 +541,7 @@ public class ZitatMaster extends Bot {
 		Member erg = null;
 		
 		if (!allNick) {
-			while (erg == null || erg.getNickname().equals(nick)) {
+			while (erg == null || erg.getEffectiveName().equals(nick)) {
 				int i = (int) (Math.random() * m0.size());
 				erg = m0.get(i);
 			}
