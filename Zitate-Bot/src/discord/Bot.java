@@ -28,7 +28,7 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException {
 
-		ZitatMaster t_d = new ZitatMaster("ODUzMzg1MTc4MDY3NTAxMDY2.YMUm4Q.mMujK1Y5ONDp9D79874KvRroK40");
+		ZitatMaster t_d = new ZitatMaster("ODUzMzg1MTc4MDY3NTAxMDY2.YMUm4Q.kZC9gj6g7JCGpQalOVF0Tn_A5u8");
 
 	}
 }

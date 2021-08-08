@@ -362,103 +362,103 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
-//		loadScores();
-//		String erg = "";
-//		String name = e.getAuthor().getName();
-//		int c = 0;
-//		if (cmd_body.length > 0 && cmd_body[0].equalsIgnoreCase("all")) {
-//			name = "all";
-//			c++;
-//		}
-//
-//		System.out.println(name);
-//		if (rating.get(name) == null) {
-//			Zitat[] temp = new Zitat[2];
-//
-//			int n = lowestZitat();
-//
-//			temp[0] = get_lOR_Zitat(n);
-//			do {
-//				temp[1] = get_lOR_Zitat(n++);
-//			} while (temp[0].equals(temp[1]));
-//
-//			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + "@" + name;
-//
-//			rating.put(name, temp);
-//		} else {
-//			if (cmd_body.length > 0 && cmd_body[c] != null) {
-//				int r = Integer.parseInt(cmd_body[c]) - 1;
-//
-//				if (r == 0 || r == 1) {
-//					Zitat[] temp = rating.get(name);
-//
-//					scores.get(temp[r].getID())[0] += 1;
-//
-//					for (int i = 0; i < 2; i++) {
-//						scores.get(temp[i].getID())[1] += 1;
-//					}
-//
-//					int Ra = scores.get(temp[r].getID())[2];
-//					int Rb = scores.get(temp[1 - r].getID())[2];
-//
-//					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
-//
-//					int change = (int) (K * (1 - expected));
-//
-//					scores.get(temp[r].getID())[2] += change;
-//					scores.get(temp[1 - r].getID())[2] -= change;
-//
-//					erg = "Voted for: " + temp[r].getAll();
-//
-//					rating.put(name, null);
-//
-//					access.put(name, true);
-//				} else {
-//					erg = "Zwischen 1 und 2 du Evolutionsbremse";
-//				}
-//			} else {
-//				erg = "richtige Zahlen du Hurensohn";
-//			}
-//		}
-//
-//		sendMessage(erg, e.getChannel());
-//
-//		saveScores();
+		loadScores();
+		String erg = "";
+		String name = e.getAuthor().getName();
+		int c = 0;
+		if (cmd_body.length > 0 && cmd_body[0].equalsIgnoreCase("all")) {
+			name = "all";
+			c++;
+		}
+
+		System.out.println(name);
+		if (rating.get(name) == null) {
+			Zitat[] temp = new Zitat[2];
+
+			int n = lowestZitat();
+
+			temp[0] = get_lOR_Zitat(n);
+			do {
+				temp[1] = get_lOR_Zitat(n++);
+			} while (temp[0].equals(temp[1]));
+
+			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + "@" + name;
+
+			rating.put(name, temp);
+		} else {
+			if (cmd_body.length > 0 && cmd_body[c] != null) {
+				int r = Integer.parseInt(cmd_body[c]) - 1;
+
+				if (r == 0 || r == 1) {
+					Zitat[] temp = rating.get(name);
+
+					scores.get(temp[r].getID())[0] += 1;
+
+					for (int i = 0; i < 2; i++) {
+						scores.get(temp[i].getID())[1] += 1;
+					}
+
+					int Ra = scores.get(temp[r].getID())[2];
+					int Rb = scores.get(temp[1 - r].getID())[2];
+
+					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
+
+					int change = (int) (K * (1 - expected));
+
+					scores.get(temp[r].getID())[2] += change;
+					scores.get(temp[1 - r].getID())[2] -= change;
+
+					erg = "Voted for: " + temp[r].getAll();
+
+					rating.put(name, null);
+
+					access.put(name, true);
+				} else {
+					erg = "Zwischen 1 und 2 du Evolutionsbremse";
+				}
+			} else {
+				erg = "richtige Zahlen du Hurensohn";
+			}
+		}
+
+		sendMessage(erg, e.getChannel());
+
+		saveScores();
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-//		loadScores();
-//		String erg = "";
-//		int top = 0;
-//		if (cmd_body.length > 0 && cmd_body[0] != null) {
-//			try {
-//				top = top < zitate.size() ? Integer.parseInt(cmd_body[0]) : zitate.size() - 1;
-//				if (top < 0)
-//					top = 1;
-//			} catch (NumberFormatException ex) {
-//				top = 10;
-//			}
-//		} else {
-//			top = 10;
-//		}
-//
-//		Map<String, Integer> map = new HashMap<String, Integer>();
-//
-//		for (Entry<String, Integer[]> entry : scores.entrySet()) {
-//			Integer[] score = entry.getValue();
-//			map.put(entry.getKey(), score[2]);
-//		}
-//
-//		String sorted = toString(map.entrySet(), true, false, true);
-//
-//		String[] best = sorted.split(",");
-//
-//		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
-//			erg += i + ". " + getZitat(best[i]).getAll() + " :" + (map.get(best[i])) + " aus " + scores.get(best[i])[1]
-//					+ "\n";
-//		}
-//
-//		sendMessage(erg, e.getChannel());
+		loadScores();
+		String erg = "";
+		int top = 0;
+		if (cmd_body.length > 0 && cmd_body[0] != null) {
+			try {
+				top = top < zitate.size() ? Integer.parseInt(cmd_body[0]) : zitate.size() - 1;
+				if (top < 0)
+					top = 1;
+			} catch (NumberFormatException ex) {
+				top = 10;
+			}
+		} else {
+			top = 10;
+		}
+
+		Map<String, Integer> map = new HashMap<String, Integer>();
+
+		for (Entry<String, Integer[]> entry : scores.entrySet()) {
+			Integer[] score = entry.getValue();
+			map.put(entry.getKey(), score[2]);
+		}
+
+		String sorted = toString(map.entrySet(), true, false, true);
+
+		String[] best = sorted.split(",");
+
+		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
+			erg += i + ". " + getZitat(best[i]).getAll() + " :" + (map.get(best[i])) + " aus " + scores.get(best[i])[1]
+					+ "\n";
+		}
+
+		sendMessage(erg, e.getChannel());
 	}
 
 	public void cmdSchach(GuildMessageReceivedEvent e, String[] cmd_body) {

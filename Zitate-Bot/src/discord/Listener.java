@@ -48,11 +48,11 @@ public class Listener extends ListenerAdapter {
 	}
 	
 	public void  onGuildVoiceJoin(GuildVoiceJoinEvent e) {
-//		if(!zm.access(e.getMember().getUser().getName())) {
-//			e.getGuild().kickVoiceMember(e.getMember()).queue();
-//			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();
-//			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher!").queue();
-//		}
+		if(!zm.access(e.getMember().getUser().getName())) {
+			e.getGuild().kickVoiceMember(e.getMember()).queue();
+			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();
+			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher!").queue();
+		}
 	}
 	
 	public void  onGuildVoiceLeave(GuildVoiceLeaveEvent e) {
