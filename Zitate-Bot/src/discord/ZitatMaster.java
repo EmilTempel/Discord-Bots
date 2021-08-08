@@ -62,12 +62,12 @@ public class ZitatMaster extends Bot {
 	Timer t;
 	final int periodMillis = 500000;
 	final double probability = 1;
-	
+
 	AudioHandler audio;
 	AudioManager manager;
-	
+
 	Map<String, Boolean> access;
-	
+
 	public ZitatMaster(String token) throws LoginException {
 		super(token);
 		setPresence(OnlineStatus.ONLINE, Activity.playing("eh keine Rolle"));
@@ -79,7 +79,8 @@ public class ZitatMaster extends Bot {
 				new Command(this::cmdSkip, "skip"), new Command(this::cmdStats, "stats", "st"),
 				new Command(this::cmdRate, "rate", "r"), new Command(this::cmdTop, "top", "t"),
 				new Command(this::cmdSchach, "schach"), new Command(this::cmdToggleRandomZitatAudio,
-						"toggleRandomZitatAudio", "togglerandomzitataudio", "trza"), new Command(this::cmdLolius, "lolius")));
+						"toggleRandomZitatAudio", "togglerandomzitataudio", "trza"),
+				new Command(this::cmdLolius, "lolius")));
 	}
 
 	public void sendMessage(String msg, TextChannel channel) {
@@ -361,103 +362,103 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
-		loadScores();
-		String erg = "";
-		String name = e.getAuthor().getName();
-		int c = 0;
-		if (cmd_body.length > 0 && cmd_body[0].equalsIgnoreCase("all")) {
-			name = "all";
-			c++;
-		}
-
-		System.out.println(name);
-		if (rating.get(name) == null) {
-			Zitat[] temp = new Zitat[2];
-
-			int n = lowestZitat();
-
-			temp[0] = get_lOR_Zitat(n);
-			do {
-				temp[1] = get_lOR_Zitat(n++);
-			} while (temp[0].equals(temp[1]));
-
-			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + "@" + name;
-
-			rating.put(name, temp);
-		} else {
-			if (cmd_body.length > 0 && cmd_body[c] != null) {
-				int r = Integer.parseInt(cmd_body[c]) - 1;
-
-				if (r == 0 || r == 1) {
-					Zitat[] temp = rating.get(name);
-
-					scores.get(temp[r].getID())[0] += 1;
-
-					for (int i = 0; i < 2; i++) {
-						scores.get(temp[i].getID())[1] += 1;
-					}
-
-					int Ra = scores.get(temp[r].getID())[2];
-					int Rb = scores.get(temp[1 - r].getID())[2];
-
-					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
-
-					int change = (int) (K * (1 - expected));
-
-					scores.get(temp[r].getID())[2] += change;
-					scores.get(temp[1 - r].getID())[2] -= change;
-
-					erg = "Voted for: " + temp[r].getAll();
-
-					rating.put(name, null);
-					
-					access.put(name, true);
-				} else {
-					erg = "Zwischen 1 und 2 du Evolutionsbremse";
-				}
-			} else {
-				erg = "richtige Zahlen du Hurensohn";
-			}
-		}
-
-		sendMessage(erg, e.getChannel());
-
-		saveScores();
+//		loadScores();
+//		String erg = "";
+//		String name = e.getAuthor().getName();
+//		int c = 0;
+//		if (cmd_body.length > 0 && cmd_body[0].equalsIgnoreCase("all")) {
+//			name = "all";
+//			c++;
+//		}
+//
+//		System.out.println(name);
+//		if (rating.get(name) == null) {
+//			Zitat[] temp = new Zitat[2];
+//
+//			int n = lowestZitat();
+//
+//			temp[0] = get_lOR_Zitat(n);
+//			do {
+//				temp[1] = get_lOR_Zitat(n++);
+//			} while (temp[0].equals(temp[1]));
+//
+//			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + "@" + name;
+//
+//			rating.put(name, temp);
+//		} else {
+//			if (cmd_body.length > 0 && cmd_body[c] != null) {
+//				int r = Integer.parseInt(cmd_body[c]) - 1;
+//
+//				if (r == 0 || r == 1) {
+//					Zitat[] temp = rating.get(name);
+//
+//					scores.get(temp[r].getID())[0] += 1;
+//
+//					for (int i = 0; i < 2; i++) {
+//						scores.get(temp[i].getID())[1] += 1;
+//					}
+//
+//					int Ra = scores.get(temp[r].getID())[2];
+//					int Rb = scores.get(temp[1 - r].getID())[2];
+//
+//					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
+//
+//					int change = (int) (K * (1 - expected));
+//
+//					scores.get(temp[r].getID())[2] += change;
+//					scores.get(temp[1 - r].getID())[2] -= change;
+//
+//					erg = "Voted for: " + temp[r].getAll();
+//
+//					rating.put(name, null);
+//
+//					access.put(name, true);
+//				} else {
+//					erg = "Zwischen 1 und 2 du Evolutionsbremse";
+//				}
+//			} else {
+//				erg = "richtige Zahlen du Hurensohn";
+//			}
+//		}
+//
+//		sendMessage(erg, e.getChannel());
+//
+//		saveScores();
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		loadScores();
-		String erg = "";
-		int top = 0;
-		if (cmd_body.length > 0 && cmd_body[0] != null) {
-			try {
-				top = top < zitate.size() ? Integer.parseInt(cmd_body[0]) : zitate.size() - 1;
-				if (top < 0)
-					top = 1;
-			} catch (NumberFormatException ex) {
-				top = 10;
-			}
-		} else {
-			top = 10;
-		}
-
-		Map<String, Integer> map = new HashMap<String, Integer>();
-
-		for (Entry<String, Integer[]> entry : scores.entrySet()) {
-			Integer[] score = entry.getValue();
-			map.put(entry.getKey(), score[2]);
-		}
-
-		String sorted = toString(map.entrySet(), true, false, true);
-
-		String[] best = sorted.split(",");
-
-		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
-			erg += i + ". " + getZitat(best[i]).getAll() + " :" + (map.get(best[i])) + " aus " + scores.get(best[i])[1]
-					+ "\n";
-		}
-
-		sendMessage(erg, e.getChannel());
+//		loadScores();
+//		String erg = "";
+//		int top = 0;
+//		if (cmd_body.length > 0 && cmd_body[0] != null) {
+//			try {
+//				top = top < zitate.size() ? Integer.parseInt(cmd_body[0]) : zitate.size() - 1;
+//				if (top < 0)
+//					top = 1;
+//			} catch (NumberFormatException ex) {
+//				top = 10;
+//			}
+//		} else {
+//			top = 10;
+//		}
+//
+//		Map<String, Integer> map = new HashMap<String, Integer>();
+//
+//		for (Entry<String, Integer[]> entry : scores.entrySet()) {
+//			Integer[] score = entry.getValue();
+//			map.put(entry.getKey(), score[2]);
+//		}
+//
+//		String sorted = toString(map.entrySet(), true, false, true);
+//
+//		String[] best = sorted.split(",");
+//
+//		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
+//			erg += i + ". " + getZitat(best[i]).getAll() + " :" + (map.get(best[i])) + " aus " + scores.get(best[i])[1]
+//					+ "\n";
+//		}
+//
+//		sendMessage(erg, e.getChannel());
 	}
 
 	public void cmdSchach(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -497,52 +498,80 @@ public class ZitatMaster extends Bot {
 		}
 		e.getChannel().sendFile(f).queue();
 	}
-	
-	public Member getRandomMember(GuildMessageReceivedEvent e) {
-	//	System.out.println(e.getGuild(). + "       " + e.getGuild().getMemberCount());
-		
+
+	public Member getRandomMemberNotNick(GuildMessageReceivedEvent e, String nick) {
+		// System.out.println(e.getGuild(). + " " + e.getGuild().getMemberCount());
+
 		List<Role> r = e.getGuild().getRoles();
 		Role[] allowed = new Role[3];
 		int curr = 0;
-		
+
 		for (int i = 0; i < r.size(); i++) {
-			if (r.get(i).getName().equalsIgnoreCase("Big Potato") || r.get(i).getName().equalsIgnoreCase("Middl Potato") || r.get(i).getName().equalsIgnoreCase("Big Jucy Potato")) {
+			if (r.get(i).getName().equalsIgnoreCase("Big Potato") || r.get(i).getName().equalsIgnoreCase("Middl Potato")
+					|| r.get(i).getName().equalsIgnoreCase("Big Jucy Potato")) {
 				allowed[curr] = r.get(i);
 				curr++;
 			}
 		}
-		
+
 		List<Member> m0 = e.getGuild().getMembersWithRoles(allowed[0]);
 		System.out.println(m0.toString());
 		List<Member> m1 = e.getGuild().getMembersWithRoles(allowed[1]);
 		System.out.println(m1.toString());
 		List<Member> m2 = e.getGuild().getMembersWithRoles(allowed[2]);
 		System.out.println(m2.toString());
-		
+
 		for (int i = 0; i < m1.size(); i++) {
 			m0.add(m1.get(i));
 		}
 		System.out.println(m0.toString());
-		
+
 		for (int i = 0; i < m2.size(); i++) {
 			m0.add(m2.get(i));
 		}
 		System.out.println(m0.toString());
+
+		boolean allNick = true;
+		for (int i = 0; i < m0.size(); i++) {
+			if (!m0.get(i).getEffectiveName().equals(nick)) {
+				allNick = false;
+			}
+		}
+
+		Member erg = null;
 		
-		int i = (int) (Math.random() * m0.size());
-		
-		Member erg = m0.get(i);
+		if (!allNick) {
+			while (erg == null || erg.getNickname().equals(nick)) {
+				int i = (int) (Math.random() * m0.size());
+				erg = m0.get(i);
+			}
+		}
+
 		System.out.println(erg.toString());
-		
+
 		return erg;
 	}
-	
-	//temp
+
+	// temp
 	public void cmdLolius(GuildMessageReceivedEvent e, String[] cmd_body) {
+		String nick = "lolius";
 		
-		getRandomMember(e).modifyNickname("lolius").queue();
-		//System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
-		// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
+		if (cmd_body.length > 0) {
+			nick = "";
+			for (int i = 0; i < cmd_body.length; i++) {
+				nick += cmd_body[i];
+				nick += " ";
+			}
+		}
+		
+		try {
+			getRandomMemberNotNick(e, nick).modifyNickname(nick).queue();
+			// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
+			// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+
 	}
 
 	public void saveStringAsWav(String s, String filename) {
@@ -554,8 +583,9 @@ public class ZitatMaster extends Bot {
 			audioplayer.setAudioFormat(AudioHandler.Format);
 			voice.setAudioPlayer(audioplayer);
 			try {
-				
-				voice.setRate(150);;
+
+				voice.setRate(150);
+				;
 				voice.setPitch(120);
 				voice.setVolume(3);
 				voice.speak(s);
@@ -578,37 +608,35 @@ public class ZitatMaster extends Bot {
 
 	public void cmdToggleRandomZitatAudio(GuildMessageReceivedEvent e, String[] cmd_body) {
 		e.getChannel().sendMessage("gibts noch ned, Vollpfosten!");
-		
-		randomZitatAudio = (randomZitatAudio)? false : true;
-		
-		if(audio == null || manager == null) {
+
+		randomZitatAudio = (randomZitatAudio) ? false : true;
+
+		if (audio == null || manager == null) {
 			manager = e.getGuild().getAudioManager();
 			audio = new AudioHandler();
-			
+
 			manager.setSendingHandler(audio);
 		}
-		
-		
-		
+
 		if (randomZitatAudio) {
 			randomlyJoinRandomOccupiedChannel(e);
-		}else {
+		} else {
 			t.cancel();
 		}
 	}
-	
+
 	public VoiceChannel randomOccupiedVoiceChannel(GuildMessageReceivedEvent e) {
 		List<VoiceChannel> vcs = e.getGuild().getVoiceChannels();
 		ArrayList<VoiceChannel> ocVcs = new ArrayList<VoiceChannel>();
-		
+
 		for (int i = 0; i < vcs.size(); i++) {
 			if (vcs.get(i).getMembers().size() != 0) {
 				ocVcs.add(vcs.get(i));
 			}
 		}
-		
+
 		VoiceChannel erg = ocVcs.get((int) (Math.random() * ocVcs.size()));
-		
+
 		return erg;
 	}
 
@@ -623,14 +651,14 @@ public class ZitatMaster extends Bot {
 		if (vc == null) {
 			tc.sendMessage("gibt keinen VoiceChannel, Doofbeutel!").queue();
 		}
-		
+
 		e.getGuild().getAudioManager().openAudioConnection(vc);
 	}
-	
+
 	public void joinRandomOccupiedChannel(GuildMessageReceivedEvent e) {
 		joinChannel(e, randomOccupiedVoiceChannel(e));
 	}
-	
+
 	public void randomlyJoinRandomOccupiedChannel(GuildMessageReceivedEvent e) {
 		t = new Timer();
 		t.scheduleAtFixedRate(new TimerTask() {
@@ -639,26 +667,26 @@ public class ZitatMaster extends Bot {
 			public void run() {
 				if (Math.random() < probability) {
 					VoiceChannel vc = randomOccupiedVoiceChannel(e);
-					
+
 					saveRandomZitatAsTTSOutputWav();
 					manager.openAudioConnection(vc);
 					audio.play("TTSOutput.wav");
-					
+
 				}
 			}
-			
+
 		}, 0, periodMillis);
 	}
-	
+
 	public void leaveChannel(GuildMessageReceivedEvent e) {
 		e.getGuild().getAudioManager().closeAudioConnection();
 	}
-	
+
 	public boolean access(String name) {
-		if(access.get(name) == null) {
+		if (access.get(name) == null) {
 			access.put(name, false);
 			return false;
-		}else {
+		} else {
 			return access.get(name);
 		}
 	}
