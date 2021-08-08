@@ -201,6 +201,7 @@ public class ZitatMaster extends Bot {
 //		System.out.println(channel.retrieveMessageById(latest).complete().getContentRaw());
 //		System.out.println(channel.retrieveMessageById(curr).complete().getContentRaw());
 
+		messages.add(channel.retrieveMessageById(curr).complete());
 		System.out.println(latest + "   " + curr);
 
 		while (latest.equals(curr) == false) {
@@ -379,7 +380,7 @@ public class ZitatMaster extends Bot {
 				temp[1] = get_lOR_Zitat(n++);
 			} while (temp[0].equals(temp[1]));
 
-			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + "@" + name;
+			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + e.getAuthor().getAsMention();
 
 			rating.put(name, temp);
 		} else {
@@ -506,7 +507,7 @@ public class ZitatMaster extends Bot {
 			voice.setAudioPlayer(audioplayer);
 			try {
 				
-				voice.setRate(150);;
+				voice.setRate(150);
 				voice.setPitch(120);
 				voice.setVolume(3);
 				voice.speak(s);

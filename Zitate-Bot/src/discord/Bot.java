@@ -28,6 +28,6 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException {
 		
-		ZitatMaster t_d = new ZitatMaster("NzI1Mzg1MDQ2MjQ4MjU5NzQ1.XvN9eA.sIRUsE9ZTYQpxhTW8BV8ucIbXRs");
+		ZitatMaster t_d = new ZitatMaster("NzI1Mzg1MDQ2MjQ4MjU5NzQ1.XvN9eA.jKJwGlBIlF2vk4rRi6y5Op-lTyw");
 	}
 }
