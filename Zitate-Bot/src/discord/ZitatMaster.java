@@ -89,7 +89,11 @@ public class ZitatMaster extends Bot {
 	public void sendMessage(String msg, TextChannel channel) {
 		channel.sendMessage(msg).queue();
 	}
-
+ 
+	public void bitebite() {
+		
+	}
+	
 	public Zitat getZitat(String ID) {
 		for (int i = 0; i < zitate.size(); i++) {
 			if (zitate.get(i).getID().contentEquals(ID))

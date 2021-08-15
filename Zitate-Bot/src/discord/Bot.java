@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.hooks.EventListener;
 
 public class Bot {
-
+//
 	JDA jda;
 
 	public Bot(String token) throws LoginException {
@@ -28,7 +28,7 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException {
 
-		ZitatMaster t_d = new ZitatMaster("ODUzMzg1MTc4MDY3NTAxMDY2.YMUm4Q.ypOq8jrviuesEdTVVbeBtqxIKaY");
+		ZitatMaster t_d = new ZitatMaster("");
 
 	}
 }
