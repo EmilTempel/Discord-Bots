@@ -70,7 +70,7 @@ public class ZitatMaster extends Bot {
 
 	public boolean spielActive = true, statsActive = true, topActive = true, rateActive = true, schachActive = true,
 			trzaActive = true, loliusActive = true, forceRateActive = true;
-//
+
 	public ZitatMaster(String token) throws LoginException {
 		super(token);
 		setPresence(OnlineStatus.ONLINE, Activity.playing("eh keine Rolle"));
