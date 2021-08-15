@@ -48,6 +48,10 @@ public class Listener extends ListenerAdapter {
 	}
 	
 	public void  onGuildVoiceJoin(GuildVoiceJoinEvent e) {
+		if (!zm.forceRateActive) {
+			return;
+		}
+		
 		if(!zm.access(e.getMember().getUser().getName())) {
 			e.getGuild().kickVoiceMember(e.getMember()).queue();
 			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();

@@ -68,6 +68,9 @@ public class ZitatMaster extends Bot {
 
 	Map<String, Boolean> access;
 
+	public boolean spielActive = true, statsActive = true, topActive = true, rateActive = true, schachActive = true,
+			trzaActive = true, loliusActive = true, forceRateActive = true;
+
 	public ZitatMaster(String token) throws LoginException {
 		super(token);
 		setPresence(OnlineStatus.ONLINE, Activity.playing("eh keine Rolle"));
@@ -80,7 +83,7 @@ public class ZitatMaster extends Bot {
 				new Command(this::cmdRate, "rate", "r"), new Command(this::cmdTop, "top", "t"),
 				new Command(this::cmdSchach, "schach"), new Command(this::cmdToggleRandomZitatAudio,
 						"toggleRandomZitatAudio", "togglerandomzitataudio", "trza"),
-				new Command(this::cmdLolius, "lolius")));
+				new Command(this::cmdLolius, "lolius"), new Command(this::cmdConfig, "config")));
 	}
 
 	public void sendMessage(String msg, TextChannel channel) {
@@ -294,12 +297,20 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdSpiel(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!spielActive) {
+			return;
+		}
+
 		int len = cmd_body[0] != null ? Integer.parseInt(cmd_body[0]) : 1;
 		game = new Game(len, e.getGuild(), this);
 		sendMessage(game.challenge(), e.getChannel());
 	}
 
 	public void cmdGuess(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!spielActive) {
+			return;
+		}
+
 		String erg = "";
 		if (game != null && cmd_body.length > 0 && cmd_body[0] != null) {
 			if (game.guess(cmd_body[0], e.getAuthor().getName())) {
@@ -314,6 +325,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdStats(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!statsActive) {
+			return;
+		}
+
 		String erg = "";
 		if (cmd_body.length > 0) {
 			switch (cmd_body[0]) {
@@ -334,6 +349,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdSkip(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!spielActive) {
+			return;
+		}
+
 		String erg = "";
 		if (game == null) {
 			erg = "Ey du Popokopf, welches Spiel?";
@@ -349,6 +368,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdErgebnisse(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!spielActive) {
+			return;
+		}
+
 		String erg = "";
 		if (game == null) {
 			erg = "Zu welchem Spiel? Bist du eine angebrunste Seuchkachel?";
@@ -362,6 +385,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!rateActive) {
+			return;
+		}
+
 		loadScores();
 		String erg = "";
 		String name = e.getAuthor().getName();
@@ -427,6 +454,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!topActive) {
+			return;
+		}
+
 		loadScores();
 		String erg = "";
 		int top = 0;
@@ -462,6 +493,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdSchach(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!schachActive) {
+			return;
+		}
+
 		if (b == null) {
 			b = new Brett();
 		} else {
@@ -539,7 +574,7 @@ public class ZitatMaster extends Bot {
 		}
 
 		Member erg = null;
-		
+
 		if (!allNick) {
 			while (erg == null || erg.getEffectiveName().equals(nick)) {
 				int i = (int) (Math.random() * m0.size());
@@ -552,10 +587,15 @@ public class ZitatMaster extends Bot {
 		return erg;
 	}
 
-	// temp
 	public void cmdLolius(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!loliusActive) {
+			return;
+		}
+
+		System.out.println(e.getGuild().getSelfMember().getId());
+
 		String nick = "lolius";
-		
+
 		if (cmd_body.length > 0) {
 			nick = "";
 			for (int i = 0; i < cmd_body.length; i++) {
@@ -563,7 +603,7 @@ public class ZitatMaster extends Bot {
 				nick += " ";
 			}
 		}
-		
+
 		try {
 			getRandomMemberNotNick(e, nick).modifyNickname(nick).queue();
 			// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
@@ -607,6 +647,10 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdToggleRandomZitatAudio(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!trzaActive) {
+			return;
+		}
+
 		e.getChannel().sendMessage("gibts noch ned, Vollpfosten!");
 
 		randomZitatAudio = (randomZitatAudio) ? false : true;
@@ -689,5 +733,85 @@ public class ZitatMaster extends Bot {
 		} else {
 			return access.get(name);
 		}
+	}
+
+	public boolean isMainBot(GuildMessageReceivedEvent e) {
+		if (e.getGuild().getSelfMember().getId().equals("853385178067501066")) {
+			return false;
+		}
+		return true;
+	}
+
+	public String formatConfig() {
+		String erg = "momentane Konfiguration:" + "  ";
+
+		erg += "spiel: " + (spielActive ? "an" : "aus") + " | ";
+		erg += "stats: " + (statsActive ? "an" : "aus") + " | ";
+		erg += "top: " + (topActive ? "an" : "aus") + " | ";
+		erg += "rate: " + (rateActive ? "an" : "aus") + " | ";
+		erg += "schach: " + (schachActive ? "an" : "aus") + " | ";
+		erg += "trza: " + (trzaActive ? "an" : "aus") + " | ";
+		erg += "lolius: " + (loliusActive ? "an" : "aus") + " | ";
+		erg += "Force-Rate: " + (forceRateActive ? "an" : "aus");
+
+		return erg;
+	}
+
+	public void cmdConfig(GuildMessageReceivedEvent e, String[] cmd_body) {
+
+		if (cmd_body.length != 3) {
+			sendMessage(formatConfig(), e.getMessage().getTextChannel());
+			sendMessage(
+					"dumm? du brauchst doch die Argumente: 1/2 (main-bot oder zweiter), gemeinter command, 0/1 (an/aus)",
+					e.getMessage().getTextChannel());
+			return;
+		}
+		
+		if (!e.getMember().getId().equals("426029391009677313") && !e.getMember().getId().equals("434312954524073986")) {
+			sendMessage("quod liket Iovis non liket bovis", e.getMessage().getTextChannel());
+			return;
+		}
+
+		if ((cmd_body[0].equals("1") && isMainBot(e)) || (cmd_body[0].equals("2") && !isMainBot(e))) {
+			switch (cmd_body[1]) {
+			case "spiel":
+				spielActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "stats":
+				statsActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "top":
+				topActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "rate":
+				rateActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "schach":
+				schachActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "trza":
+				trzaActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "lolius":
+				loliusActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "forcerate":
+				forceRateActive = cmd_body[2].equals("0") ? false : true;
+				break;
+			case "all":
+				spielActive = cmd_body[2].equals("0") ? false : true;
+				statsActive = cmd_body[2].equals("0") ? false : true;
+				topActive = cmd_body[2].equals("0") ? false : true;
+				rateActive = cmd_body[2].equals("0") ? false : true;
+				schachActive = cmd_body[2].equals("0") ? false : true;
+				trzaActive = cmd_body[2].equals("0") ? false : true;
+				loliusActive = cmd_body[2].equals("0") ? false : true;
+				forceRateActive = cmd_body[2].equals("0") ? false : true;
+			default:
+				break;
+			}
+		}
+
+		sendMessage(formatConfig(), e.getMessage().getTextChannel());
 	}
 }
