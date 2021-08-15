@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.hooks.EventListener;
 
 public class Bot {
-//
+
 	JDA jda;
 
 	public Bot(String token) throws LoginException {
