@@ -815,4 +815,3 @@ public class ZitatMaster extends Bot {
 		sendMessage(formatConfig(), e.getMessage().getTextChannel());
 	}
 }
-//
