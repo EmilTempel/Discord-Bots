@@ -811,7 +811,7 @@ public class ZitatMaster extends Bot {
 				break;
 			}
 		}
-//
+
 		sendMessage(formatConfig(), e.getMessage().getTextChannel());
 	}
 }
