@@ -46,7 +46,7 @@ public class Listener extends ListenerAdapter {
 			}
 		}
 	}
-	//
+	
 	public void  onGuildVoiceJoin(GuildVoiceJoinEvent e) {
 		if (!zm.forceRateActive) {
 			return;
