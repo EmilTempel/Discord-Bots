@@ -27,7 +27,7 @@ public class Listener extends ListenerAdapter {
 			zm.loadZitate(e.getGuild());
 			first = false;
 		}
-
+//
 		if (msg.length() > 0 && msg.charAt(0) == prefix) {
 			System.out.println(msg);
 
