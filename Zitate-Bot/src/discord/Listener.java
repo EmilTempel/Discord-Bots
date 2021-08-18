@@ -1,11 +1,6 @@
 package discord;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import net.dv8tion.jda.api.entities.PrivateChannel;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -53,26 +48,14 @@ public class Listener extends ListenerAdapter {
 	}
 	
 	public void  onGuildVoiceJoin(GuildVoiceJoinEvent e) {
-		List<Role> roles = new ArrayList<Role>();
-		roles.add(e.getGuild().getRolesByName("middl Potato", true).get(0));
-		roles.add(e.getGuild().getRolesByName("Big Potato", true).get(0));
-		roles.add(e.getGuild().getRolesByName("Big Jucy Potato", true).get(0));
-		
-		boolean cool = false;
-		for(Role r : roles) {
-			if(e.getMember().getRoles().contains(r)) {
-				cool = true; 
-			}
+		if (!zm.forceRateActive) {
+			return;
 		}
 		
-		if(!zm.access(e.getMember().getUser().getName()) && cool) {
+		if(!zm.access(e.getMember().getUser().getName())) {
 			e.getGuild().kickVoiceMember(e.getMember()).queue();
 			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();
-			
-			
-			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher! (mit <r)").queue();
-			c.sendFile(new File("trade_offer.png")).queue();
-			c.sendMessage("https://www.youtube.com/watch?v=dQw4w9WgXcQ").queue();
+			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher!").queue();
 		}
 	}
 	
