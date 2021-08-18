@@ -68,6 +68,8 @@ public class Listener extends ListenerAdapter {
 		if(!zm.access(e.getMember().getUser().getName()) && cool) {
 			e.getGuild().kickVoiceMember(e.getMember()).queue();
 			PrivateChannel c = e.getMember().getUser().openPrivateChannel().complete();
+			
+			
 			c.sendMessage("Rate mal ein Zitat du schleimblättriger Vorhautzieher! (mit <r)").queue();
 			c.sendFile(new File("trade_offer.png")).queue();
 			c.sendMessage("https://www.youtube.com/watch?v=dQw4w9WgXcQ").queue();

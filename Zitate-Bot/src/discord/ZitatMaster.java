@@ -124,12 +124,13 @@ public class ZitatMaster extends Bot {
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		zitate.forEach(z -> {
 			String a = z.autor.toLowerCase();
-			if (z.inhalt.contains(word)) {
+			if (z.inhalt.contains(word.toLowerCase())) {
 				if (map.get(a) == null) {
 					map.put(a, 1);
 				} else {
 					map.put(a, map.get(a) + 1);
 				}
+				System.out.println(word);
 			}
 		});
 
@@ -375,9 +376,10 @@ public class ZitatMaster extends Bot {
 
 			int n = lowestZitat();
 
-			temp[0] = get_lOR_Zitat(n);
+			int r = (int) (Math.random()*2);
+			temp[r] = get_lOR_Zitat(n);
 			do {
-				temp[1] = get_lOR_Zitat(n++);
+				temp[1-r] = randomZitat();
 			} while (temp[0].equals(temp[1]));
 
 			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + e.getAuthor().getAsMention();

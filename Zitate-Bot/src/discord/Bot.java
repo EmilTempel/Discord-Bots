@@ -19,7 +19,7 @@ public class Bot {
 
 	public void addListener(EventListener listener) {
 		jda.addEventListener(listener);
-
+		
 	}
 
 	public void setPresence(OnlineStatus status, Activity activity) {
