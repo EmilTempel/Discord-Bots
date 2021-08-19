@@ -3,7 +3,7 @@ package discord;
 import java.util.HashMap;
 import java.util.Map;
 
-import handler.ZitatHandler;
+import handler.Handler;
 import net.dv8tion.jda.api.entities.Guild;
 
 public class Game {
@@ -12,12 +12,12 @@ public class Game {
 	Map<String, Integer> map;
 
 	Zitat antwort;
-	ZitatHandler zh;
+	Handler h;
 	Guild g;
 
-	public Game(int len, Guild g, ZitatHandler zh) {
+	public Game(int len, Guild g, Handler h) {
 		this.len = len;
-		this.zh = zh;
+		this.h = h;
 		this.g = g;
 		this.map = new HashMap<String,Integer>();
 	}
@@ -25,7 +25,7 @@ public class Game {
 	public String challenge() {
 		if (!isOver()) {
 			c++;
-			antwort = zh.randomZitat();
+			antwort = h.randomZitat();
 			return antwort.inhalt;
 		}else {
 			return "Game Over! <ergebnisse";
@@ -58,7 +58,7 @@ public class Game {
 	}
 
 	public String ergebnis() {
-		return ZitatHandler.toString(map.entrySet(),true,true,false);
+		return Handler.toString(map.entrySet(),true,true,false);
 	}
 
 }
