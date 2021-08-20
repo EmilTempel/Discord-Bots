@@ -1,5 +1,10 @@
 package discord;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 import javax.security.auth.login.LoginException;
 
 import net.dv8tion.jda.api.JDA;
@@ -28,7 +33,16 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException {
 		
-		ZitatMaster t_d = new ZitatMaster("ODUzMzg1MTc4MDY3NTAxMDY2.YMUm4Q.xeHpiHnLY_ehdr1Speaj8mEIirU");
+		String token = "";
+		
+		try {
+			BufferedReader b = new BufferedReader(new FileReader("C:/Users/Public/Documents/Zitate-Bot/token.txt"));
+			token = b.readLine();
+			b.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		ZitatMaster t_d = new ZitatMaster(token);
 		
 	}
 }
