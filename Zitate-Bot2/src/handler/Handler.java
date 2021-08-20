@@ -13,14 +13,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
-import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioFileFormat.Type;
+import javax.sound.sampled.AudioFormat;
 
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
@@ -29,6 +29,7 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 
 import commands.Command;
 import commands.MessageCommand;
+import discord.Configuration;
 import discord.Game;
 import discord.UserInformation;
 import discord.Zitat;
@@ -42,9 +43,9 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
 import spiel.Brett;
+import spiel.Figur.Farbe;
 import spiel.Spielzug;
 import spiel.Zug;
-import spiel.Figur.Farbe;
 
 public class Handler implements AudioSendHandler {
 
@@ -73,29 +74,40 @@ public class Handler implements AudioSendHandler {
 
 	AudioManager manager;
 
+	Configuration config;
+
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-		commands = new Command[]{
-				new MessageCommand('<', new String[] {"stats"}, new String[][] {new String[] {"\\w+"}},this::cmdStats),
-				new MessageCommand('"', null, new String[][] {null}, (e,s) -> loadZitate()),
+		config = new Configuration(userinfo);
+
+		commands = new Command[] {
+				new MessageCommand('<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } },
+						this::cmdStats, config),
+				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate(), config),
 				new MessageCommand('<', new String[] { "rate", "r" },
-						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
+						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate, config),
 				new MessageCommand('<', new String[] { "top" },
-						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
+						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop, config),
 				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
-						this::cmdSpiel),
+						this::cmdSpiel, config),
 				new MessageCommand('<', new String[] { "guess", "g" }, new String[][] { new String[] { ".+" } },
-						this::cmdGuess),
-				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip),
+						this::cmdGuess, config),
+				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip,
+						config),
 				new MessageCommand('<', new String[] { "ergebnisse", "e" }, new String[][] { new String[] {} },
-						this::cmdErgebnisse),
+						this::cmdErgebnisse, config),
 				new MessageCommand('<', new String[] { "schach" },
-						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach),
-				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} }, this::cmdToggleRandomZitatAudio)
+						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach,
+						config),
+				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
+						this::cmdToggleRandomZitatAudio, config),
+				new MessageCommand('<', new String[] { "config" }, new String[][] { new String[] {} }, this::cmdConfig, config)
 		};
+
+		config.initiateConfig(commands);
 		loadZitate();
-		
+
 		bb = new ArrayList<ByteBuffer>();
 	}
 
@@ -675,5 +687,34 @@ public class Handler implements AudioSendHandler {
 	public boolean isOpus() {
 		return true;
 
+	}
+
+	public void cmdConfig(GuildMessageReceivedEvent e, String[] cmd_body) {
+
+		if (cmd_body.length != 3) {
+			sendMessage(config.getFormattedConfig(), e.getChannel());
+			sendMessage(
+					"dumm? du brauchst doch die Argumente: 1/2 (main-bot oder zweiter), gemeinter command, 0/1 (an/aus)",
+					e.getChannel());
+			return;
+		}
+
+		if (!e.getMember().getId().equals("426029391009677313")
+				&& !e.getMember().getId().equals("434312954524073986")) {
+			sendMessage("quod liket Iovis non liket bovis", e.getMessage().getTextChannel());
+			return;
+		}
+
+		for (int i = 0; i < commands.length; i++) {
+			if (cmd_body[1].equals(commands[i].getName())) {
+				config.set(commands[i], (cmd_body[2].equals("0")) ? false : true);
+			}
+		}
+
+		if (cmd_body[1].equals("all")) {
+			config.setAll((cmd_body[2].equals("0")) ? false : true);
+		}
+
+		sendMessage(config.getFormattedConfig(), e.getChannel());
 	}
 }

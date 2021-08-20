@@ -32,6 +32,14 @@ public class UserInformation {
 		load();
 	}
 
+	public void put(String UserID, String key, Object value) {
+		if (users.get(UserID) == null) {
+			users.put(UserID, new HashMap<String, Object>());
+		}
+		users.get(UserID).put(key, value);
+		save();
+	}
+	
 	public void put(String UserID, String key, Object[] value) {
 		if (users.get(UserID) == null) {
 			users.put(UserID, new HashMap<String, Object>());

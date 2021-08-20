@@ -588,30 +588,31 @@ public class ZitatMaster extends Bot {
 	}
 
 	public void cmdLolius(GuildMessageReceivedEvent e, String[] cmd_body) {
-		if (!loliusActive) {
-			return;
-		}
+//		if (!loliusActive) {
+//			return;
+//		}
+//
+//		System.out.println(e.getGuild().getSelfMember().getId());
+//
+//		String nick = "lolius";
+//
+//		if (cmd_body.length > 0) {
+//			nick = "";
+//			for (int i = 0; i < cmd_body.length; i++) {
+//				nick += cmd_body[i];
+//				nick += " ";
+//			}
+//		}
+//
+//		try {
+//			getRandomMemberNotNick(e, nick).modifyNickname(nick).queue();
+//			// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
+//			// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
+//		} catch (Exception x) {
+//			x.printStackTrace();
+//		}
 
-		System.out.println(e.getGuild().getSelfMember().getId());
-
-		String nick = "lolius";
-
-		if (cmd_body.length > 0) {
-			nick = "";
-			for (int i = 0; i < cmd_body.length; i++) {
-				nick += cmd_body[i];
-				nick += " ";
-			}
-		}
-
-		try {
-			getRandomMemberNotNick(e, nick).modifyNickname(nick).queue();
-			// System.out.println(e.getGuild().getMemberById("426029391009677313").toString());
-			// e.getGuild().getMemberById("426029391009677313").modifyNickname("Lolius").queue();
-		} catch (Exception x) {
-			x.printStackTrace();
-		}
-
+		e.getGuild().getSelfMember().modifyNickname("Mitat Zweister").queue();
 	}
 
 	public void saveStringAsWav(String s, String filename) {

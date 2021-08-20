@@ -23,7 +23,7 @@ public class ZitatMaster extends Bot {
 		h = new HashMap<Guild, Handler>();
 		userinfo = new HashMap<Guild, UserInformation>();
 		addListener(new Listener(
-				new MessageCommand('\\', null, new String[][] { null }, (e, s) -> createHandler(e.getGuild()))));
+				new MessageCommand('\\', null, new String[][] { null }, (e, s) -> createHandler(e.getGuild()), null)));
 	}
 
 	public void createHandler(Guild g) {

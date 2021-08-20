@@ -19,7 +19,7 @@ public class Listener extends ListenerAdapter {
 
 	public Listener(Command... commands) {
 		this.commands = new ArrayList<Command>();
-		this.addCommands(commands);
+		addCommands(commands);
 	}
 
 	public void addCommands(Command... commands) {
