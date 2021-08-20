@@ -102,7 +102,7 @@ public class Handler implements AudioSendHandler {
 						config),
 				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
 						this::cmdToggleRandomZitatAudio, config),
-				new MessageCommand('<', new String[] { "config" }, new String[][] { new String[] {} }, this::cmdConfig, config)
+				new MessageCommand('<', new String[] { "config" }, new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config)
 		};
 
 		config.initiateConfig(commands);
@@ -702,6 +702,11 @@ public class Handler implements AudioSendHandler {
 		if (!e.getMember().getId().equals("426029391009677313")
 				&& !e.getMember().getId().equals("434312954524073986")) {
 			sendMessage("quod liket Iovis non liket bovis", e.getMessage().getTextChannel());
+			return;
+		}
+		
+		if (cmd_body[1].equals("config")) {
+			sendMessage("no", e.getChannel());
 			return;
 		}
 

@@ -1,6 +1,7 @@
 package discord;
 
 import java.util.HashMap;
+import java.util.Set;
 
 import commands.Command;
 
@@ -15,7 +16,7 @@ public class Configuration {
 	}
 
 	public void initiateConfig(Command[] cmd) {
-		if (ui.get("guild", "config", HashMap.class) != null) {
+		if (ui.get("guild", "config", HashMap.class) == null) {
 			for (int i = 0; i < cmd.length; i++) {
 				activeCmds.put(cmd[i], true);
 			}
@@ -31,10 +32,10 @@ public class Configuration {
 	}
 
 	public void setAll(boolean b) {
-		Command[] cmd = (Command[]) activeCmds.keySet().toArray();
-		for (int i = 0; i < cmd.length; i++) {
-			activeCmds.put(cmd[i], b);
-		}
+		Set<Command> cmd = activeCmds.keySet();
+		cmd.forEach(k -> {
+			activeCmds.put(k, b);
+		});
 		ui.put("guild", "config", activeCmds);
 	}
 
@@ -43,14 +44,15 @@ public class Configuration {
 	}
 
 	public String getFormattedConfig() {
-		String erg = "momentane Konfiguration:";
-		Command[] cmd = (Command[]) activeCmds.keySet().toArray();
+		Set<Command> cmd = activeCmds.keySet();
+		StringBuilder sb = new StringBuilder();
+		sb.append("momentane Konfiguration:");
 
-		for (int i = 0; i < cmd.length; i++) {
-			erg += "\n    " + cmd[i].getName() + " - " + (activeCmds.get(cmd[i]) ? "an" : "aus");
-		}
+		cmd.forEach(k -> {
+			sb.append("\n    " + k.getName() + " - " + (activeCmds.get(k) ? "an" : "aus"));
+		});
 
-		return erg;
+		return sb.toString();
 	}
 
 	public String toString() {
