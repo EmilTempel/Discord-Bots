@@ -102,8 +102,8 @@ public class Handler implements AudioSendHandler {
 						config),
 				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
 						this::cmdToggleRandomZitatAudio, config),
-				new MessageCommand('<', new String[] { "config" }, new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config)
-		};
+				new MessageCommand('<', new String[] { "config" },
+						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config) };
 
 		config.initiateConfig(commands);
 		loadZitate();
@@ -689,6 +689,14 @@ public class Handler implements AudioSendHandler {
 
 	}
 
+	public boolean isMainBot(Guild g) {
+		if (g.getSelfMember().getId() == "853385178067501066") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public void cmdConfig(GuildMessageReceivedEvent e, String[] cmd_body) {
 
 		if (cmd_body.length != 3) {
@@ -699,12 +707,17 @@ public class Handler implements AudioSendHandler {
 			return;
 		}
 
+		if ((isMainBot(e.getGuild()) && cmd_body[0].equals("2"))
+				|| (!isMainBot(e.getGuild()) && cmd_body[0].equals("1"))) {
+			return;
+		}
+
 		if (!e.getMember().getId().equals("426029391009677313")
 				&& !e.getMember().getId().equals("434312954524073986")) {
 			sendMessage("quod liket Iovis non liket bovis", e.getMessage().getTextChannel());
 			return;
 		}
-		
+
 		if (cmd_body[1].equals("config")) {
 			sendMessage("no", e.getChannel());
 			return;
