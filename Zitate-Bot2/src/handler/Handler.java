@@ -36,12 +36,15 @@ import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
+import potatocoin.Challenge;
+import potatocoin.Inventory;
 import spiel.Brett;
 import spiel.Figur.Farbe;
 import spiel.Spielzug;
@@ -76,6 +79,8 @@ public class Handler implements AudioSendHandler {
 
 	Configuration config;
 
+	ArrayList<Member> acceptParticipation, leaveEvent;
+
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
@@ -103,12 +108,23 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
 						this::cmdToggleRandomZitatAudio, config),
 				new MessageCommand('<', new String[] { "config" },
-						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config) };
+						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config),
+				new MessageCommand('<', new String[] { "participate" }, new String[][] { new String[] {} },
+						this::cmdParticipate, config),
+				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept,
+						config),
+				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
+						this::cmdDecline, config),
+				new MessageCommand('<', new String[] { "leave supercooles Event" }, new String[][] { new String[] {} },
+						this::cmdLeaveEvent, config) };
 
 		config.initiateConfig(commands);
 		loadZitate();
 
 		bb = new ArrayList<ByteBuffer>();
+
+		acceptParticipation = new ArrayList<Member>();
+		leaveEvent = new ArrayList<Member>();
 	}
 
 	public Command[] getCommands() {
@@ -144,7 +160,7 @@ public class Handler implements AudioSendHandler {
 		zitate = new ArrayList<Zitat>();
 		scores = new HashMap<String, Integer[]>();
 
-		List<Message> messages = new ArrayList<Message>();
+		ArrayList<Message> messages = new ArrayList<Message>();
 
 		TextChannel channel = g.getTextChannelsByName("zitate", true).get(0);
 
@@ -734,5 +750,51 @@ public class Handler implements AudioSendHandler {
 		}
 
 		sendMessage(config.getFormattedConfig(), e.getChannel());
+	}
+
+	public void cmdParticipate(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (!acceptParticipation.contains(m)) {
+			sendMessage(m.getAsMention() + "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
+					+ "auch wenn es verlockend wäre, manche zu bevorzugen, aber dann machst du es kaputt :( "
+					+ "Stimmst du zu? tippe <accept. Willst du nicht mitmachen, dann tippe <decline. "
+					+ "Falls du jemals wieder aussteigen möchtest, schreibe zweimal nacheinander <leave supercooles Event. "
+					+ "!Achtung! dein Inventar wird gelöscht!", e.getChannel());
+
+			acceptParticipation.add(m);
+		}
+	}
+
+	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (!acceptParticipation.contains(m)) {
+			acceptParticipation.remove(m);
+			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
+				userinfo.put(m.getId(), "inventory",
+						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
+			}
+			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
+		}
+	}
+
+	public void cmdDecline(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (acceptParticipation.contains(m)) {
+			acceptParticipation.remove(m);
+			sendMessage(m.getAsMention() + "Dann halt nicht. So nervig einfach", e.getChannel());
+		}
+	}
+
+	public void cmdLeaveEvent(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (leaveEvent.contains(m)) {
+			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
+				userinfo.put(m.getId(), "inventory", null);
+			}
+			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
+		} else {
+			leaveEvent.add(m);
+			sendMessage(m.getAsMention() + "Sicher?", e.getChannel());
+		}
 	}
 }
