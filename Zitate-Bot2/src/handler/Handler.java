@@ -767,7 +767,7 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
-		if (!acceptParticipation.contains(m)) {
+		if (acceptParticipation.contains(m)) {
 			acceptParticipation.remove(m);
 			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
 				userinfo.put(m.getId(), "inventory",
