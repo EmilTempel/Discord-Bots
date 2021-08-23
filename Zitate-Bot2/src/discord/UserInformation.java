@@ -24,8 +24,8 @@ public class UserInformation {
 			new Converter("Integer", v -> Integer.parseInt(v)),
 			new Converter("Double", v -> Double.parseDouble(v)),
 			new Converter("String", v -> v),
-			new Converter("Zitat", v -> g.getTextChannelsByName("zitate", true).get(0).retrieveMessageById(v)),
-			new Converter
+			new Converter("Zitat", v -> g.getTextChannelsByName("zitate", true).get(0).retrieveMessageById(v))
+			//, new Converter
 			};
 
 	public UserInformation(Guild g) {
