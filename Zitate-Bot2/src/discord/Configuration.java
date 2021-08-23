@@ -10,9 +10,10 @@ public class Configuration {
 	HashMap<Command, Boolean> activeCmds;
 	UserInformation ui;
 
-	public Configuration(UserInformation ui) {
+	public Configuration(UserInformation ui, Command[] cmd) {
 		activeCmds = new HashMap<Command, Boolean>();
 		this.ui = ui;
+		initiateConfig(cmd);
 	}
 
 	public void initiateConfig(Command[] cmd) {
@@ -23,18 +24,23 @@ public class Configuration {
 			ui.put("guild", "config", activeCmds);
 		} else {
 			activeCmds = ui.get("guild", "config", HashMap.class);
+			for(int i = 0; i < cmd.length; i++) {
+				cmd[i].setActive(activeCmds.get(cmd[i]));
+			}
 		}
 	}
 
 	public void set(Command cmd, boolean b) {
 		activeCmds.put(cmd, b);
 		ui.put("guild", "config", activeCmds);
+		cmd.setActive(b);
 	}
 
 	public void setAll(boolean b) {
 		Set<Command> cmd = activeCmds.keySet();
 		cmd.forEach(k -> {
 			activeCmds.put(k, b);
+			k.setActive(b);
 		});
 		ui.put("guild", "config", activeCmds);
 	}

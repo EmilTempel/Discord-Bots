@@ -4,18 +4,17 @@ import discord.Configuration;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 
-public class LeaveCommand implements Command {
+public class LeaveCommand extends Command {
 
 	Executable exe;
 	Configuration c;
 
 	public LeaveCommand(Executable exe, Configuration c) {
 		this.exe = exe;
-		this.c = c;
 	}
 
 	public void execute(Event e, String... cmd_body) {
-		if (c == null || c.getActive(this)) {
+		if (active) {
 			exe.run((GuildVoiceLeaveEvent) e, cmd_body);
 		}
 	}
