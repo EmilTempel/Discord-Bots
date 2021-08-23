@@ -39,6 +39,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -115,7 +116,7 @@ public class Handler implements AudioSendHandler {
 						config),
 				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
 						this::cmdDecline, config),
-				new MessageCommand('<', new String[] { "leave supercooles Event" }, new String[][] { new String[] {} },
+				new MessageCommand('<', new String[] { "leaveSupercoolesEvent" }, new String[][] { new String[] {} },
 						this::cmdLeaveEvent, config) };
 
 		config.initiateConfig(commands);
@@ -765,6 +766,35 @@ public class Handler implements AudioSendHandler {
 		}
 	}
 
+	public void giveGnocciGang(Guild g, Member m) {
+		Role r = null;
+		if (g.getRolesByName("Gnocci-Gang", true).size() > 0) {
+			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+			System.out.println("Rolle vorhanden");
+		} else {
+			r = g.createRole().setName("Gnocci-Gang").complete();
+			System.out.println("Rolle erstellt");
+		}
+		if (!m.getRoles().contains(r)) {
+			g.addRoleToMember(m, r).complete();
+			System.out.println("Rolle zu " + m.getUser().getName() + " hinzugefügt");
+		}
+	}
+
+	public void removeGnocciGang(Guild g, Member m) {
+		Role r = null;
+		try {
+			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("gibt die Rolle nicht");
+			return;
+		}
+		if (m.getRoles().contains(r)) {
+			g.removeRoleFromMember(m, r).complete();
+			System.out.println("Rolle genommen: " + m.getUser().getName());
+		}
+	}
+
 	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
 		if (acceptParticipation.contains(m)) {
@@ -773,6 +803,8 @@ public class Handler implements AudioSendHandler {
 				userinfo.put(m.getId(), "inventory",
 						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
 			}
+
+			giveGnocciGang(e.getGuild(), m);
 			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
 		}
 	}
@@ -791,6 +823,7 @@ public class Handler implements AudioSendHandler {
 			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
 				userinfo.put(m.getId(), "inventory", null);
 			}
+			removeGnocciGang(e.getGuild(), m);
 			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
 		} else {
 			leaveEvent.add(m);
