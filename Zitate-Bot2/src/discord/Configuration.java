@@ -39,10 +39,8 @@ public class Configuration {
 	public void setAll(boolean b) {
 		Set<Command> cmd = activeCmds.keySet();
 		cmd.forEach(k -> {
-			activeCmds.put(k, b);
-			k.setActive(b);
+			set(k,b);
 		});
-		ui.put("guild", "config", activeCmds);
 	}
 
 	public boolean getActive(Command cmd) {

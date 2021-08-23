@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,6 +18,15 @@ public class UserInformation {
 	HashMap<String, HashMap<String, Object>> users;
 
 	String path;
+
+	Converter[] converters = { 
+			new Converter("Boolean", v -> Boolean.parseBoolean(v)),
+			new Converter("Integer", v -> Integer.parseInt(v)),
+			new Converter("Double", v -> Double.parseDouble(v)),
+			new Converter("String", v -> v),
+			new Converter("Zitat", v -> g.getTextChannelsByName("zitate", true).get(0).retrieveMessageById(v)),
+			new Converter
+			};
 
 	public UserInformation(Guild g) {
 		this.g = g;
@@ -67,6 +75,13 @@ public class UserInformation {
 				HashMap<String, Object> value = new HashMap<String, Object>();
 				split[1] = split[1].replace("{", "").replace("}", "");
 				String[] json = split[1].split(";");
+				for (String element : json) {
+					String[] e = element.split(":");
+					Object o = fromString(e[1], e[2]);
+					if (o != null) {
+						value.put(e[0], o);
+					}
+				}
 				users.put(split[0], value);
 			}
 
@@ -98,7 +113,7 @@ public class UserInformation {
 			String name = entry.getKey();
 			String value = toFormat(entry.getValue());
 			if (type != null && value != null) {
-				str += type + ":" + name + ":" + value + ",";
+				str += name + ":" + value + ":" + type + ",";
 				c++;
 			}
 		}
@@ -185,11 +200,6 @@ public class UserInformation {
 	}
 
 	public static Object fromString(String value, String clazz) {
-		if (clazz.contains("[]")) {
-
-		} else if (clazz.contains("HashMap")) {
-
-		}
 
 		return null;
 	}
@@ -205,12 +215,25 @@ public class UserInformation {
 		return str;
 	}
 
+	class Converter {
+		String regex;
+		Method m;
+
+		Converter(String regex, Method m) {
+			this.regex = regex;
+			this.m = m;
+		}
+
+		public Object convert(String value) {
+			return m.convert(value);
+		}
+	}
+
+	interface Method {
+		public abstract Object convert(String value);
+	}
+
 	public static void main(String[] args) {
-		ArrayList<Integer> o = new ArrayList<Integer>();
-		o.add(1);
-		o.add(3);
-		o.add(2);
-		ArrayList<?> list = (ArrayList<?>) o;
-		System.out.println(list.get(3));
+		System.out.println();
 	}
 }

@@ -84,40 +84,38 @@ public class Handler implements AudioSendHandler {
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-		config = new Configuration(userinfo);
+		
 
 		commands = new Command[] {
 				new MessageCommand('<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } },
-						this::cmdStats, config),
-				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate(), config),
+						this::cmdStats),
+				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate()),
 				new MessageCommand('<', new String[] { "rate", "r" },
-						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate, config),
+						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
 				new MessageCommand('<', new String[] { "top" },
-						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop, config),
+						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
 				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
-						this::cmdSpiel, config),
+						this::cmdSpiel),
 				new MessageCommand('<', new String[] { "guess", "g" }, new String[][] { new String[] { ".+" } },
-						this::cmdGuess, config),
-				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip,
-						config),
+						this::cmdGuess),
+				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip),
 				new MessageCommand('<', new String[] { "ergebnisse", "e" }, new String[][] { new String[] {} },
-						this::cmdErgebnisse, config),
+						this::cmdErgebnisse),
 				new MessageCommand('<', new String[] { "schach" },
-						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach,
-						config),
+						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach),
 				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
-						this::cmdToggleRandomZitatAudio, config),
+						this::cmdToggleRandomZitatAudio),
 				new MessageCommand('<', new String[] { "config" },
-						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config),
+						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig),
 				new MessageCommand('<', new String[] { "participate" }, new String[][] { new String[] {} },
-						this::cmdParticipate, config),
-				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept,
-						config),
+						this::cmdParticipate),
+				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept),
 				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
-						this::cmdDecline, config),
+						this::cmdDecline),
 				new MessageCommand('<', new String[] { "leave supercooles Event" }, new String[][] { new String[] {} },
-						this::cmdLeaveEvent, config) };
+						this::cmdLeaveEvent) };
 
+		config = new Configuration(userinfo,commands);
 		config.initiateConfig(commands);
 		loadZitate();
 
