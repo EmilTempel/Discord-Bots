@@ -24,7 +24,7 @@ public class Configuration {
 			ui.put("guild", "config", activeCmds);
 		} else {
 			activeCmds = ui.get("guild", "config", HashMap.class);
-			for(int i = 0; i < cmd.length; i++) {
+			for (int i = 0; i < cmd.length; i++) {
 				cmd[i].setActive(activeCmds.get(cmd[i]));
 			}
 		}
@@ -39,7 +39,9 @@ public class Configuration {
 	public void setAll(boolean b) {
 		Set<Command> cmd = activeCmds.keySet();
 		cmd.forEach(k -> {
-			set(k,b);
+			if (!k.getName().equals("config")) {
+				set(k, b);
+			}
 		});
 	}
 
