@@ -7,10 +7,14 @@ import commands.Command;
 import commands.JoinCommand;
 import commands.LeaveCommand;
 import commands.MessageCommand;
+import commands.ReactionAddCommand;
+import commands.ReactionRemoveCommand;
 import handler.Handler;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class Listener extends ListenerAdapter {
@@ -66,6 +70,26 @@ public class Listener extends ListenerAdapter {
 			if (command instanceof LeaveCommand) {
 				LeaveCommand c = (LeaveCommand) command;
 				c.execute(e);
+			}
+		}
+	}
+	
+	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent e) {
+		System.out.println("reaction");
+		for (Command command : commands) {
+			if (command instanceof ReactionAddCommand) {
+				ReactionAddCommand c = (ReactionAddCommand) command;
+				c.execute(e,e.getReactionEmote().getName());
+			}
+		}
+	}
+	
+	public void onGuildMessageReactionRemove(GuildMessageReactionRemoveEvent e) {
+		System.out.println("reaction");
+		for (Command command : commands) {
+			if (command instanceof ReactionRemoveCommand) {
+				ReactionRemoveCommand c = (ReactionRemoveCommand) command;
+				c.execute(e,e.getReactionEmote().getName());
 			}
 		}
 	}

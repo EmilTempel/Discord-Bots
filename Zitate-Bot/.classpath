@@ -2,28 +2,16 @@
 <classpath>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Documents/Java/Zitate-Bot/libraries/JDA-4.2.1_266-withDependencies.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Documents/Java/Zitate-Bot/libraries/schach.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/cmu_time_awb.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/cmu_us_kal.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/cmudict04.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/cmulex.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/cmutimelex.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/en_us.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/freetts.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/freetts-jsapi10.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/freetts-1.2/lib/mbrola.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-client-5.2-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-de-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-en-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-fr-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-it-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-lb-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-ru-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-sv-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-te-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-lang-tr-5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/marytts-runtime-5.2-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Jopp/Downloads/marytts-5.2/lib/voice-cmu-slt-hsmm-5.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/cmu_time_awb.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/cmu_us_kal.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/cmudict04.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/cmulex.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/cmutimelex.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/en_us.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/freetts.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/freetts-jsapi10.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/JDA-4.2.1_266-withDependencies.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/mbrola.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Public/Documents/Zitate-Bot/libraries/schach.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

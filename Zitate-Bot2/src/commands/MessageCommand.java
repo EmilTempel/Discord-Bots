@@ -4,7 +4,7 @@ import discord.Configuration;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class MessageCommand implements Command {
+public class MessageCommand extends Command {
 
 	char prefix;
 	String[] KeyWords;
@@ -12,16 +12,15 @@ public class MessageCommand implements Command {
 	Executable exe;
 	Configuration c;
 
-	public MessageCommand(char prefix, String[] KeyWords, String[][] body_regex, Executable exe, Configuration c) {
+	public MessageCommand(char prefix, String[] KeyWords, String[][] body_regex, Executable exe) {
 		this.prefix = prefix;
 		this.KeyWords = KeyWords;
 		this.body_regex = body_regex;
 		this.exe = exe;
-		this.c = c;
 	}
 
 	public void execute(Event e, String... cmd_body) {
-		if (c == null || c.getActive(this)) {
+		if (active) {
 			exe.run((GuildMessageReceivedEvent) e, cmd_body);
 			System.out.println("run");
 		} else {
