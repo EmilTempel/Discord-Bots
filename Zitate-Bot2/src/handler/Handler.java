@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +29,6 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 
 import commands.Command;
 import commands.MessageCommand;
-import commands.ReactionAddCommand;
 import discord.Configuration;
 import discord.Game;
 import discord.UserInformation;
@@ -38,13 +36,15 @@ import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
+import potatocoin.Challenge;
+import potatocoin.Inventory;
 import spiel.Brett;
 import spiel.Figur.Farbe;
 import spiel.Spielzug;
@@ -59,7 +59,7 @@ public class Handler implements AudioSendHandler {
 	ArrayList<Zitat> zitate;
 	Map<String, Integer[]> scores;
 
-	final String path;
+	final String path = "zitat_scores";
 	final int K = 400;
 
 	Game game;
@@ -79,39 +79,52 @@ public class Handler implements AudioSendHandler {
 
 	Configuration config;
 
+	ArrayList<Member> acceptParticipation, leaveEvent;
+
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
+		config = new Configuration(userinfo);
+
 		commands = new Command[] {
-				new MessageCommand(
-						'<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } }, this::cmdStats),
-				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate()),
+				new MessageCommand('<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } },
+						this::cmdStats, config),
+				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate(), config),
 				new MessageCommand('<', new String[] { "rate", "r" },
-						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
+						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate, config),
 				new MessageCommand('<', new String[] { "top" },
-						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
+						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop, config),
 				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
-						this::cmdSpiel),
+						this::cmdSpiel, config),
 				new MessageCommand('<', new String[] { "guess", "g" }, new String[][] { new String[] { ".+" } },
-						this::cmdGuess),
-				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip),
+						this::cmdGuess, config),
+				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip,
+						config),
 				new MessageCommand('<', new String[] { "ergebnisse", "e" }, new String[][] { new String[] {} },
-						this::cmdErgebnisse),
+						this::cmdErgebnisse, config),
 				new MessageCommand('<', new String[] { "schach" },
-						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach),
+						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach,
+						config),
 				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
-						this::cmdToggleRandomZitatAudio),
+						this::cmdToggleRandomZitatAudio, config),
 				new MessageCommand('<', new String[] { "config" },
-						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig)
-				};
-		
-		config = new Configuration(userinfo,commands);
-		path = "Guild/" + g.getId() + "/zitate_scores";
+						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig, config),
+				new MessageCommand('<', new String[] { "participate" }, new String[][] { new String[] {} },
+						this::cmdParticipate, config),
+				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept,
+						config),
+				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
+						this::cmdDecline, config),
+				new MessageCommand('<', new String[] { "leave supercooles Event" }, new String[][] { new String[] {} },
+						this::cmdLeaveEvent, config) };
+
+		config.initiateConfig(commands);
 		loadZitate();
 
 		bb = new ArrayList<ByteBuffer>();
 
-		
+		acceptParticipation = new ArrayList<Member>();
+		leaveEvent = new ArrayList<Member>();
 	}
 
 	public Command[] getCommands() {
@@ -147,7 +160,7 @@ public class Handler implements AudioSendHandler {
 		zitate = new ArrayList<Zitat>();
 		scores = new HashMap<String, Integer[]>();
 
-		List<Message> messages = new ArrayList<Message>();
+		ArrayList<Message> messages = new ArrayList<Message>();
 
 		TextChannel channel = g.getTextChannelsByName("zitate", true).get(0);
 
@@ -184,6 +197,7 @@ public class Handler implements AudioSendHandler {
 				scores.put(z.getID(), new Integer[] { 0, 0, 0 });
 			}
 		});
+		saveScores();
 		loadScores();
 
 		System.out.println("successfully loaded");
@@ -215,6 +229,7 @@ public class Handler implements AudioSendHandler {
 			}
 
 		}
+
 		if (temp.size() == 0) {
 			return get_lOR_Zitat(n + 1);
 		} else {
@@ -735,5 +750,51 @@ public class Handler implements AudioSendHandler {
 		}
 
 		sendMessage(config.getFormattedConfig(), e.getChannel());
+	}
+
+	public void cmdParticipate(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (!acceptParticipation.contains(m)) {
+			sendMessage(m.getAsMention() + "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
+					+ "auch wenn es verlockend wäre, manche zu bevorzugen, aber dann machst du es kaputt :( "
+					+ "Stimmst du zu? tippe <accept. Willst du nicht mitmachen, dann tippe <decline. "
+					+ "Falls du jemals wieder aussteigen möchtest, schreibe zweimal nacheinander <leave supercooles Event. "
+					+ "!Achtung! dein Inventar wird gelöscht!", e.getChannel());
+
+			acceptParticipation.add(m);
+		}
+	}
+
+	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (acceptParticipation.contains(m)) {
+			acceptParticipation.remove(m);
+			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
+				userinfo.put(m.getId(), "inventory",
+						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
+			}
+			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
+		}
+	}
+
+	public void cmdDecline(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (acceptParticipation.contains(m)) {
+			acceptParticipation.remove(m);
+			sendMessage(m.getAsMention() + "Dann halt nicht. So nervig einfach", e.getChannel());
+		}
+	}
+
+	public void cmdLeaveEvent(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (leaveEvent.contains(m)) {
+			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
+				userinfo.put(m.getId(), "inventory", null);
+			}
+			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
+		} else {
+			leaveEvent.add(m);
+			sendMessage(m.getAsMention() + "Sicher?", e.getChannel());
+		}
 	}
 }
