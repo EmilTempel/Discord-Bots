@@ -1,6 +1,8 @@
 package discord;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,13 +35,30 @@ public class ZitatMaster extends Bot {
 				f.mkdir();
 			
 			UserInformation ui = new UserInformation(g);
+//			ui.put("general", "Int", 1);
+//			
+//			ui.put("general", "Array", new Integer[] {1,2,4,5});
+//			ArrayList<Integer> list = new ArrayList<Integer>();
+//			list.add(1);
+//			list.add(3);
+//			ui.put("general", "ArrayList", list);
+//			HashMap<Integer,String> map = new HashMap<Integer,String>();
+//			map.put(1, "helol");
+//			map.put(2, "helal");
+//			ui.put("general", "HashMap", map);
 			
+			System.out.println("Array: " + Arrays.deepToString(ui.get("general", "Array", Object[].class)));
+			System.out.println("ArrayList: " + ui.get("general", "ArrayList", ArrayList.class));
+			System.out.println("HashMap: " + ui.get("general", "HashMap", HashMap.class));
+			System.out.println("Int: " +  ui.get("general", "Int", Integer.class));
 			
-			Handler handler = new Handler(g, ui);
+			ui.save();
 			
-			h.put(g, handler);
-			userinfo.put(g, ui);
-			listener.addHandler(handler);
+//			Handler handler = new Handler(g, ui);
+//			
+//			h.put(g, handler);
+//			userinfo.put(g, ui);
+//			listener.addHandler(handler);
 		}
 	}
 }
