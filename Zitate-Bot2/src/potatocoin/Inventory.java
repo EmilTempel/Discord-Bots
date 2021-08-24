@@ -70,6 +70,10 @@ public class Inventory {
 	public void removeZitat(int i) {
 		zitate.remove(i);
 	}
+	
+	public void removeZitat(Zitat z) {
+		zitate.remove(z);
+	}
 
 	public ArrayList<Zitat> getZitate() {
 		return zitate;

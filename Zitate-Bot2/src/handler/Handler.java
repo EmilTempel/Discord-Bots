@@ -38,13 +38,17 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
 import potatocoin.Challenge;
+import potatocoin.GnocciGangException;
 import potatocoin.Inventory;
+import potatocoin.TradeOffer;
 import spiel.Brett;
 import spiel.Figur.Farbe;
 import spiel.Spielzug;
@@ -84,11 +88,10 @@ public class Handler implements AudioSendHandler {
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-		
 
 		commands = new Command[] {
-				new MessageCommand('<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } },
-						this::cmdStats),
+				new MessageCommand(
+						'<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } }, this::cmdStats),
 				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate()),
 				new MessageCommand('<', new String[] { "rate", "r" },
 						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
@@ -112,10 +115,13 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept),
 				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
 						this::cmdDecline),
-				new MessageCommand('<', new String[] { "leave supercooles Event" }, new String[][] { new String[] {} },
-						this::cmdLeaveEvent) };
+				new MessageCommand('<', new String[] { "leaveSupercoolesEvent" }, new String[][] { new String[] {} },
+						this::cmdLeaveEvent),
+				new MessageCommand('<', new String[] { "trade" }, new String[][] {
+						new String[] { "\\w+", "(\\d+\\.\\d+)|(\\d+)", "((\\d+,)*\\d+)|n", "((\\d+,)*\\d+)|n" } },
+						this::cmdTrade) };
 
-		config = new Configuration(userinfo,commands);
+		config = new Configuration(userinfo, commands);
 		config.initiateConfig(commands);
 		loadZitate();
 
@@ -750,13 +756,42 @@ public class Handler implements AudioSendHandler {
 		sendMessage(config.getFormattedConfig(), e.getChannel());
 	}
 
+	public void giveGnocciGang(Guild g, Member m) {
+		Role r = null;
+		if (g.getRolesByName("Gnocci-Gang", true).size() > 0) {
+			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+			System.out.println("Rolle vorhanden");
+		} else {
+			r = g.createRole().setName("Gnocci-Gang").complete();
+			System.out.println("Rolle erstellt");
+		}
+		if (!m.getRoles().contains(r)) {
+			g.addRoleToMember(m, r).complete();
+			System.out.println("Rolle zu " + m.getUser().getName() + " hinzugefuegt");
+		}
+	}
+
+	public void removeGnocciGang(Guild g, Member m) {
+		Role r = null;
+		try {
+			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("gibt die Rolle nicht");
+			return;
+		}
+		if (m.getRoles().contains(r)) {
+			g.removeRoleFromMember(m, r).complete();
+			System.out.println("Rolle genommen: " + m.getUser().getName());
+		}
+	}
+
 	public void cmdParticipate(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
 		if (!acceptParticipation.contains(m)) {
 			sendMessage(m.getAsMention() + "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
 					+ "auch wenn es verlockend wäre, manche zu bevorzugen, aber dann machst du es kaputt :( "
 					+ "Stimmst du zu? tippe <accept. Willst du nicht mitmachen, dann tippe <decline. "
-					+ "Falls du jemals wieder aussteigen möchtest, schreibe zweimal nacheinander <leave supercooles Event. "
+					+ "Falls du jemals wieder aussteigen möchtest, schreibe zweimal nacheinander <leaveSupercoolesEvent. "
 					+ "!Achtung! dein Inventar wird gelöscht!", e.getChannel());
 
 			acceptParticipation.add(m);
@@ -771,6 +806,7 @@ public class Handler implements AudioSendHandler {
 				userinfo.put(m.getId(), "inventory",
 						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
 			}
+			giveGnocciGang(e.getGuild(), m);
 			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
 		}
 	}
@@ -789,10 +825,60 @@ public class Handler implements AudioSendHandler {
 			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
 				userinfo.put(m.getId(), "inventory", null);
 			}
+			removeGnocciGang(e.getGuild(), m);
 			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
 		} else {
 			leaveEvent.add(m);
 			sendMessage(m.getAsMention() + "Sicher?", e.getChannel());
 		}
+	}
+
+	public void cmdTrade(GuildMessageReceivedEvent e, String[] cmd_body) {
+		double coins = Double.parseDouble(cmd_body[1]);
+		ArrayList<Zitat> ang = new ArrayList<Zitat>(), ford = new ArrayList<Zitat>();
+		Member fromM = e.getGuild().getMember(e.getAuthor()), toM = null;
+		Inventory fromInv = userinfo.get(fromM.getId(), "inventory", Inventory.class), toInv = null;
+		Role r = null;
+		try {
+			toM = e.getGuild().getMember(e.getJDA().getUsersByName(cmd_body[0], true).get(0));
+			toInv = userinfo.get(toM.getId(), "inventory", Inventory.class);
+			r = e.getGuild().getRolesByName("Gnocci-Gang", true).get(0);
+			if (!fromM.getRoles().contains(r) || !toM.getRoles().contains(r)) {
+				throw new GnocciGangException();
+			}
+		} catch (ArrayIndexOutOfBoundsException | NullPointerException e1) {
+			e1.printStackTrace();
+			System.out.println("user " + cmd_body[0] + " nicht gefunden");
+			return;
+		} catch (GnocciGangException e1) {
+			e1.printStackTrace();
+			return;
+		}
+
+		if (!cmd_body[2].equals("n")) {
+			String[] s = cmd_body[2].split(",");
+			for (int i = 0; i < s.length; i++) {
+				ang.add(fromInv.getZitate().get(Integer.parseInt(s[i])));
+			}
+		}
+
+		if (!cmd_body[3].equals("n")) {
+			String[] s = cmd_body[3].split(",");
+			for (int i = 0; i < s.length; i++) {
+				ford.add(toInv.getZitate().get(Integer.parseInt(s[i])));
+			}
+		}
+
+		TradeOffer t = new TradeOffer(e.getGuild(), userinfo, fromM, toM, ang, ford, coins);
+		try {
+			String p = "tradeoffer0.png";
+			File tradeoffer = new File(p);
+			ImageIO.write(t.getAsImage(), "png", tradeoffer);
+			e.getChannel().sendFile(tradeoffer, p)
+					.append(toM.getAsMention()).queue();
+		} catch (IOException | IllegalArgumentException e1) {
+			e1.printStackTrace();
+		}
+
 	}
 }
