@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import discord.Zitat;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class Inventory {
@@ -127,6 +128,21 @@ public class Inventory {
 		}
 
 		return img;
+	}
+	
+	public String[] getFormatted(Member m) {
+		int size = zitate.size() / 5;
+		if (size % 5 != 0) {
+			size++;
+		}
+		String[] erg = new String[size];
+		
+		erg[0] = m.getUser().getName() + "'s Inventory: \n";
+		erg[0] += coins + " :toffler:";
+		
+		
+		
+		return erg;
 	}
 
 	public String toString() {

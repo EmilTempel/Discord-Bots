@@ -884,6 +884,15 @@ public class Handler implements AudioSendHandler {
 
 	}
 
+	public void cmdInventory(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (!e.getGuild().getMember(e.getAuthor()).getRoles().contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+			System.out.println("nicht Gnocci-Gang");
+			return;
+		}
+		
+		
+	}
+
 	public void cmdaddTag(GuildMessageReceivedEvent e, String[] cmd_body) {
 		ArrayList<String> tags = userinfo.get("guild", "tags", ArrayList.class);
 		if (tags == null)
@@ -933,8 +942,8 @@ public class Handler implements AudioSendHandler {
 						notAssigned.add(zitat);
 				}
 				System.out.println(notAssigned.size());
-				
-				if(notAssigned.size() == 0) {
+
+				if (notAssigned.size() == 0) {
 					notAssigned = zitate;
 				}
 				z = notAssigned.get((int) (Math.random() * notAssigned.size()));
