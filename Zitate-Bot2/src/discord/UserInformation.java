@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class UserInformation {
 
 	String path;
 
-	Converter<?>[] converters;
+	Converter[] converters;
 
 	public UserInformation(Guild g) {
 		this.g = g;
@@ -33,33 +34,29 @@ public class UserInformation {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		converters = new Converter[] { 
-				new Converter<Boolean>("Boolean", Boolean.class,(v, c) -> Boolean.parseBoolean(v)),
-				new Converter<Integer>("Integer", Integer.class,(v, c) -> Integer.parseInt(v)),
-				new Converter<Double>("Double", Double.class, (v, c) -> Double.parseDouble(v)),
-				new Converter<String>("String", String.class,(v, c) -> v),
-				new Converter<Zitat>("Zitat", Zitat.class,(v, c) -> g.getTextChannelsByName("zitate", true).get(0).retrieveMessageById(v)),
-				new Converter<Inventory>("Inventory", Inventory.class, (v, c) -> new Inventory(v, g)),
-				new Converter<Object[]>("\\w+(\\[\\])+", Object[].class, (v, c) -> {
+		converters = new Converter[] { new Converter("Boolean", Boolean.class, (v, c) -> Boolean.parseBoolean(v)),
+				new Converter("Integer", Integer.class, (v, c) -> Integer.parseInt(v)),
+				new Converter("Double", Double.class, (v, c) -> Double.parseDouble(v)),
+				new Converter("String", String.class, (v, c) -> v),
+				new Converter("Zitat", Zitat.class, (v, c) -> null),
+				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(v, g)),
+				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {
 					String[] split = split(v);
-					Object[] arr = new Object[split.length];
-					for (int i = 0; i < split.length; i++) {
-						arr[i] = fromString(split[i], c.substring(0, c.length()-2));
-					}
-					return arr;
-				}), 
-				new Converter<ArrayList>("ArrayList<.+>", ArrayList.class, (v, c) -> {
+					String element_type = c.substring(0, c.length() - 2);
+					return createArray(getType(element_type), split, element_type);
+				}), new Converter("ArrayList<.+>", ArrayList.class, (v, c) -> {
 					String[] split = split(v);
 					String element_type = c.substring(10, c.length() - 1);
-					return createArrayList(getType(element_type),split, element_type);
-				}),
-				new Converter<HashMap>("HashMap<.+,.+>", HashMap.class, (v,c) -> {
+					return createArrayList(getType(element_type), split, element_type);
+				}), new Converter("HashMap<.+,.+>", HashMap.class, (v, c) -> {
 					String[] split = split(v);
 					String[] types = split(c.substring(8, c.length() - 1));
-					System.out.println(Arrays.toString(types));	
+					for (int i = 0; i < 2; i++) {
+						types[i] = types[i].substring(1, types[i].length() - 1);
+					}
+					System.out.println(Arrays.toString(types));
 					return createHashMap(getType(types[0]), getType(types[1]), split, types[0], types[1]);
-				})
-		};
+				}) };
 
 		load();
 	}
@@ -99,10 +96,12 @@ public class UserInformation {
 				split[1] = split[1].replace("{", "").replace("}", "");
 				String[] json = split[1].split(";");
 				for (String element : json) {
-					String[] e = element.split(":");
-					Object o = fromString(e[1], e[2]);
-					if (o != null) {
-						value.put(e[0], o);
+					if (!element.equals("")) {
+						String[] e = element.split(":");
+						Object o = fromString(e[1], e[2]);
+						if (o != null) {
+							value.put(e[0], o);
+						}
 					}
 				}
 				users.put(split[0], value);
@@ -128,16 +127,18 @@ public class UserInformation {
 		}
 	}
 
-	public static String toJSON(HashMap<String, Object> in) {
+	public String toJSON(HashMap<String, Object> in) {
 		String str = "{";
 		int c = 0;
 		for (Entry<String, Object> entry : in.entrySet()) {
-			String type = toType(entry.getValue());
-			String name = entry.getKey();
-			String value = toFormat(entry.getValue());
-			if (type != null && value != null) {
-				str += name + ":" + value + ":" + type + ";";
-				c++;
+			if (entry.getValue() != null) {
+				String type = toType(entry.getValue());
+				String name = entry.getKey();
+				String value = toFormat(entry.getValue());
+				if (type != null && supported(type) && value != null) {
+					str += name + ":" + value + ":" + type + ";";
+					c++;
+				}
 			}
 		}
 		System.out.println(str);
@@ -198,7 +199,7 @@ public class UserInformation {
 				key_type = toType(e.getKey());
 				value_type = toType(e.getValue());
 				if (key_type != null && value_type != null) {
-					str = o.getClass().getSimpleName() + "<[" +  key_type + "],[" + value_type + "]>";
+					str = o.getClass().getSimpleName() + "<[" + key_type + "],[" + value_type + "]>";
 				}
 			}
 
@@ -217,7 +218,7 @@ public class UserInformation {
 	}
 
 	public Object fromString(String value, String clazz) {
-		for (Converter<?> c : converters) {
+		for (Converter c : converters) {
 			if (clazz.matches(c.regex)) {
 				System.out.println("fromString() has activated: " + clazz);
 				return c.convert(value.substring(1, value.length() - 1), clazz);
@@ -226,16 +227,36 @@ public class UserInformation {
 		return null;
 	}
 
-	public <Typ> Class<Typ> getType(String clazz) {
-		for (Converter<?> c : converters) {
+	public Class<?> getType(String clazz) {
+		if (clazz.matches(".+(\\[\\])+")) {
+			String t = clazz.substring(0, clazz.length() - 2);
+			return createArray(getType(t), new String[0], t).getClass();
+		}
+
+		for (Converter c : converters) {
 			if (clazz.matches(c.regex)) {
-				
-				Converter<Typ> converter = (Converter<Typ>) c;
-				System.out.println("getType() works just fine: " + converter.getClazz());
-				return converter.getClazz();
+				System.out.println("getType() works just fine: " + c.getClazz());
+				return c.getClazz();
 			}
 		}
 		return null;
+	}
+
+	public boolean supported(String type) {
+		if (type.matches(".+(\\[\\])+")) {
+			return supported(type.replace("[", "").replace("]", ""));
+		} else if (type.matches("ArrayList<.+>")) {
+			return supported(type.substring(10, type.length() - 1));
+		} else if (type.matches("HashMap<.+,.+>")) {
+			String[] split = split(type.substring(8, type.length() - 1));
+			return supported(split[0]) && supported(split[1]);
+		}
+
+		for (Converter c : converters) {
+			if (type.matches(c.regex))
+				return true;
+		}
+		return false;
 	}
 
 	public String[] split(String str) {
@@ -253,13 +274,21 @@ public class UserInformation {
 			case ']':
 				c--;
 				if (c == 0) {
-					values.add(str.substring(first_idx, i+1));
+					values.add(str.substring(first_idx, i + 1));
 				}
 			}
 		}
 		System.out.println("before split(): " + str);
 		System.out.println("after split() " + values.toString());
 		return values.toArray(new String[values.size()]);
+	}
+
+	public <Element> Element[] createArray(Class<Element> clazz, String[] values, String element_type) {
+		Element[] array = (Element[]) Array.newInstance(clazz, values.length);
+		for (int i = 0; i < values.length; i++) {
+			array[i] = clazz.cast(fromString(values[i], element_type));
+		}
+		return array;
 	}
 
 	public <Element> ArrayList<Element> createArrayList(Class<Element> clazz, String[] values, String element_type) {
@@ -270,23 +299,24 @@ public class UserInformation {
 		return list;
 	}
 
-	public <Key, Value> HashMap<Key, Value> createHashMap(Class<Key> key, Class<Value> value, String[] values, String key_type, String value_type) {
+	public <Key, Value> HashMap<Key, Value> createHashMap(Class<Key> key, Class<Value> value, String[] values,
+			String key_type, String value_type) {
 		HashMap<Key, Value> map = new HashMap<Key, Value>();
 		System.out.println("Key = " + key);
 		System.out.println("Value = " + value);
-		for(int i = 0; i < values.length; i+=2) {
-			map.put(key.cast(fromString(values[i],key_type)), value.cast(fromString(values[i+1],value_type)));
+		for (int i = 0; i < values.length; i += 2) {
+			map.put(key.cast(fromString(values[i], key_type)), value.cast(fromString(values[i + 1], value_type)));
 		}
-		
+
 		return map;
 	}
 
-	class Converter<Typ> {
+	class Converter {
 		String regex;
-		Class<Typ> c;
+		Class<?> c;
 		Method m;
 
-		Converter(String regex, Class<Typ> c, Method m) {
+		<Typ> Converter(String regex, Class<Typ> c, Method m) {
 			this.regex = regex;
 			this.c = c;
 			this.m = m;
@@ -296,7 +326,7 @@ public class UserInformation {
 			return m.convert(value, clazz);
 		}
 
-		public Class<Typ> getClazz() {
+		public Class<?> getClazz() {
 			return c;
 		}
 	}
@@ -306,6 +336,8 @@ public class UserInformation {
 	}
 
 //	public static void main(String[] args) {
-//		System.out.println("Zitat[][]".matches("\\w+(\\[\\])+"));
+//		UserInformation ui = new UserInformation(null);
+//		ArrayList<?> list = ui.createArrayList(ui.getType("String"), new String[] {"[12]","[123]", "[hello]"}, "String");
+//		System.out.println(list);
 //	}
 }

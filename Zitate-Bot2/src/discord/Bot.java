@@ -3,6 +3,7 @@ package discord;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.security.auth.login.LoginException;
 
@@ -14,15 +15,16 @@ import net.dv8tion.jda.api.entities.Activity;
 public class Bot {
 
 	JDA jda;
-	Listener listener;
+	ArrayList<Listener> listeners;
 
 	public Bot(String token) throws LoginException {
 		jda = JDABuilder.createDefault(token).build();
+		listeners = new ArrayList<Listener>();
 	}
 
 	public void addListener(Listener listener) {
 		jda.addEventListener(listener);
-		this.listener = listener;
+		listeners.add(listener);
 	}
 
 	public void setPresence(OnlineStatus status, Activity activity) {

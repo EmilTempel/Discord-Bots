@@ -38,7 +38,6 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -119,7 +118,16 @@ public class Handler implements AudioSendHandler {
 						this::cmdLeaveEvent),
 				new MessageCommand('<', new String[] { "trade" }, new String[][] {
 						new String[] { "\\w+", "(\\d+\\.\\d+)|(\\d+)", "((\\d+,)*\\d+)|n", "((\\d+,)*\\d+)|n" } },
-						this::cmdTrade) };
+						this::cmdTrade),
+				new MessageCommand('<', new String[] { "addTag" }, new String[][] { new String[] { ".+" } },
+						this::cmdaddTag),
+				new MessageCommand('<', new String[] { "removeTag" }, new String[][] { new String[] { ".+" } },
+						this::cmdremoveTag),
+				new MessageCommand('<', new String[] { "showTags" }, new String[][] { new String[0] },
+						this::cmdshowTags),
+				new MessageCommand('<', new String[] { "assignTag" },
+						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
+						this::cmdassignTag) };
 
 		config = new Configuration(userinfo, commands);
 		config.initiateConfig(commands);
@@ -201,7 +209,6 @@ public class Handler implements AudioSendHandler {
 				scores.put(z.getID(), new Integer[] { 0, 0, 0 });
 			}
 		});
-		saveScores();
 		loadScores();
 
 		System.out.println("successfully loaded");
@@ -743,11 +750,7 @@ public class Handler implements AudioSendHandler {
 			return;
 		}
 
-		for (int i = 0; i < commands.length; i++) {
-			if (cmd_body[1].equals(commands[i].getName())) {
-				config.set(commands[i], (cmd_body[2].equals("0")) ? false : true);
-			}
-		}
+		config.set(cmd_body[1], cmd_body[2] == "1" ? true : false);
 
 		if (cmd_body[1].equals("all")) {
 			config.setAll((cmd_body[2].equals("0")) ? false : true);
@@ -756,13 +759,13 @@ public class Handler implements AudioSendHandler {
 		sendMessage(config.getFormattedConfig(), e.getChannel());
 	}
 
-	public void giveGnocciGang(Guild g, Member m) {
+	public void giveRole(Guild g, Member m, String role) {
 		Role r = null;
-		if (g.getRolesByName("Gnocci-Gang", true).size() > 0) {
-			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+		if (g.getRolesByName(role, true).size() > 0) {
+			r = g.getRolesByName(role, true).get(0);
 			System.out.println("Rolle vorhanden");
 		} else {
-			r = g.createRole().setName("Gnocci-Gang").complete();
+			r = g.createRole().setName(role).complete();
 			System.out.println("Rolle erstellt");
 		}
 		if (!m.getRoles().contains(r)) {
@@ -771,10 +774,10 @@ public class Handler implements AudioSendHandler {
 		}
 	}
 
-	public void removeGnocciGang(Guild g, Member m) {
+	public void removeRole(Guild g, Member m, String role) {
 		Role r = null;
 		try {
-			r = g.getRolesByName("Gnocci-Gang", true).get(0);
+			r = g.getRolesByName(role, true).get(0);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("gibt die Rolle nicht");
 			return;
@@ -806,7 +809,7 @@ public class Handler implements AudioSendHandler {
 				userinfo.put(m.getId(), "inventory",
 						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
 			}
-			giveGnocciGang(e.getGuild(), m);
+			giveRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
 		}
 	}
@@ -825,7 +828,7 @@ public class Handler implements AudioSendHandler {
 			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
 				userinfo.put(m.getId(), "inventory", null);
 			}
-			removeGnocciGang(e.getGuild(), m);
+			removeRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
 		} else {
 			leaveEvent.add(m);
@@ -874,11 +877,97 @@ public class Handler implements AudioSendHandler {
 			String p = "tradeoffer0.png";
 			File tradeoffer = new File(p);
 			ImageIO.write(t.getAsImage(), "png", tradeoffer);
-			e.getChannel().sendFile(tradeoffer, p)
-					.append(toM.getAsMention()).queue();
+			e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).queue();
 		} catch (IOException | IllegalArgumentException e1) {
 			e1.printStackTrace();
 		}
 
+	}
+
+	public void cmdaddTag(GuildMessageReceivedEvent e, String[] cmd_body) {
+		ArrayList<String> tags = userinfo.get("guild", "tags", ArrayList.class);
+		if (tags == null)
+			tags = new ArrayList<String>();
+		tags.add(cmd_body[0]);
+		userinfo.put("guild", "tags", tags);
+
+		sendMessage("Der Tag " + cmd_body[0] + " wurde hinzugefügt", e.getChannel());
+	}
+
+	public void cmdremoveTag(GuildMessageReceivedEvent e, String[] cmd_body) {
+		ArrayList<String> tags = userinfo.get("guild", "tags", ArrayList.class);
+		if (tags == null)
+			tags = new ArrayList<String>();
+		tags.remove(cmd_body[0]);
+		userinfo.put("guild", "tags", tags);
+
+		sendMessage("Der Tag " + cmd_body[0] + " wurde gelöscht", e.getChannel());
+	}
+
+	public void cmdshowTags(GuildMessageReceivedEvent e, String[] cmd_body) {
+		ArrayList<String> tags = userinfo.get("guild", "tags", ArrayList.class);
+		if (tags == null)
+			tags = new ArrayList<String>();
+
+		String list = "";
+		for (int i = 0; i < tags.size(); i++) {
+			list += (i + 1) + ". " + tags.get(i);
+			if (i != tags.size() - 1)
+				list += ", ";
+		}
+		sendMessage(list, e.getChannel());
+	}
+
+	public void cmdassignTag(GuildMessageReceivedEvent e, String[] cmd_body) {
+		ArrayList<String> tags = userinfo.get("guild", "tags", ArrayList.class);
+		if (tags == null)
+			tags = new ArrayList<String>();
+
+		String Id = e.getAuthor().getId();
+		Zitat z;
+		if ((z = userinfo.get(Id, "assign", Zitat.class)) == null) {
+			if (cmd_body.length == 0 || !cmd_body[0].matches("\\d+")) {
+				ArrayList<Zitat> notAssigned = new ArrayList<Zitat>();
+				for (Zitat zitat : zitate) {
+					if (zitat.getTags().size() == 0)
+						notAssigned.add(zitat);
+				}
+				System.out.println(notAssigned.size());
+				
+				if(notAssigned.size() == 0) {
+					notAssigned = zitate;
+				}
+				z = notAssigned.get((int) (Math.random() * notAssigned.size()));
+			} else {
+				z = zitate.get(Integer.parseInt(cmd_body[0]));
+			}
+			sendMessage("Welche Tags sollte folgendes Zitat besitzen? \n" + z.getAll(), e.getChannel());
+		} else {
+			if (cmd_body.length > 0)
+				if (cmd_body[0].matches("(\\d+,)*\\d+")) {
+					String[] split = cmd_body[0].split(",");
+					for (int i = 0; i < split.length; i++) {
+						int idx = Integer.parseInt(split[i]) - 1;
+						if (idx < tags.size()) {
+							z.addTag(tags.get(idx));
+						}
+					}
+					sendMessage("Das Zitat: \n" + z.getAll() + "\nhat jetzt die Tags: " + z.getTags().toString(),
+							e.getChannel());
+					z = null;
+				} else if (cmd_body[0].matches("(.+,)*.+")) {
+					String[] split = cmd_body[0].split(",");
+					for (int i = 0; i < split.length; i++) {
+						if (tags.contains(split[i])) {
+							z.addTag(split[i]);
+						}
+					}
+					sendMessage("Das Zitat: \n" + z.getAll() + "\nhat jetzt die Tags: " + z.getTags().toString(),
+							e.getChannel());
+					z = null;
+				}
+		}
+		userinfo.put(Id, "assign", z);
+		userinfo.put("guild", "zitate", zitate);
 	}
 }

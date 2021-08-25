@@ -1,10 +1,15 @@
 package discord;
 
+import java.util.ArrayList;
+
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 
 public class Zitat {
 
 	String inhalt, autor, untertitel, schreiber, ID;
+	int elo, wins, playouts;
+	ArrayList<String> tags;
 
 	public Zitat(Message msg) {
 		String z = msg.getContentRaw();
@@ -21,6 +26,13 @@ public class Zitat {
 			schreiber = msg.getAuthor().getName().trim();
 			ID = msg.getId();
 		}
+		tags = new ArrayList<String>();
+	}
+	
+	public Zitat(String[] values, Guild g) {
+		
+		
+		
 	}
 
 	public boolean isFull() {
@@ -51,7 +63,15 @@ public class Zitat {
 		return ID;
 	}
 	
+	public void addTag(String tag) {
+		tags.add(tag);
+	}
+	
+	public ArrayList<String> getTags(){
+		return tags;
+	}
+	
 	public String toString() {
-		return ID;
+		return ID + "," + elo + "," + wins + "," + playouts + "," + tags.toString().replace("[", "").replace("]", "");
 	}
 }
