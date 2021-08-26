@@ -15,7 +15,7 @@ public class ReactionAddCommand extends Command{
 		if(active) {
 			GuildMessageReactionAddEvent e1 = (GuildMessageReactionAddEvent) e;
 			System.out.println(e1.getReactionEmote().getName());
-			if (e1.getReactionEmote().getName().equals(emote)) {
+			if (emote.equals("any") || e1.getReactionEmote().getName().equals(emote)) {
 				exe.execute((GuildMessageReactionAddEvent)e, cmd_body);
 			}
 		}

@@ -86,8 +86,6 @@ public class Handler implements AudioSendHandler {
 
 	ArrayList<Member> acceptParticipation, leaveEvent;
 
-	HashMap<Message, TradeOffer> trades;
-
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
