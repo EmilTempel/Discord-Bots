@@ -5,13 +5,19 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 
 public class ReactionAddCommand extends Command{
 	Executable exe;
-	public ReactionAddCommand(Executable exe) {
+	String emote;
+	public ReactionAddCommand(String emote, Executable exe) {
+		this.emote = emote;
 		this.exe = exe;
 	}
 	
 	public void execute(Event e, String... cmd_body) {
 		if(active) {
-			exe.execute((GuildMessageReactionAddEvent)e, cmd_body);
+			GuildMessageReactionAddEvent e1 = (GuildMessageReactionAddEvent) e;
+			System.out.println(e1.getReactionEmote().getName());
+			if (e1.getReactionEmote().getName().equals(emote)) {
+				exe.execute((GuildMessageReactionAddEvent)e, cmd_body);
+			}
 		}
 	}
 

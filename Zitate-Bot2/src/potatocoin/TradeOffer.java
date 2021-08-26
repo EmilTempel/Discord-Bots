@@ -50,6 +50,14 @@ public class TradeOffer {
 			fromInv.removeZitat(angZ.get(i));
 		}
 	}
+	
+	public Member getToMember() {
+		return to;
+	}
+	
+	public double getCoinBalance() {
+		return coinBalance;
+	}
 
 	public BufferedImage getAsImage() {
 		BufferedImage img = null, iToffler = null;

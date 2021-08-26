@@ -29,6 +29,7 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 
 import commands.Command;
 import commands.MessageCommand;
+import commands.ReactionAddCommand;
 import discord.Configuration;
 import discord.Game;
 import discord.UserInformation;
@@ -43,6 +44,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
 import potatocoin.Challenge;
 import potatocoin.GnocciGangException;
@@ -83,6 +85,8 @@ public class Handler implements AudioSendHandler {
 	Configuration config;
 
 	ArrayList<Member> acceptParticipation, leaveEvent;
+
+	HashMap<Message, TradeOffer> trades;
 
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
@@ -127,7 +131,9 @@ public class Handler implements AudioSendHandler {
 						this::cmdshowTags),
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
-						this::cmdassignTag) };
+						this::cmdassignTag),
+				new ReactionAddCommand(":thumbsup:", this::cmdAcceptTrade),
+				new ReactionAddCommand(":thumbsdown:", this::cmdDeclineTrade) };
 
 		config = new Configuration(userinfo, commands);
 		config.initiateConfig(commands);
@@ -873,24 +879,66 @@ public class Handler implements AudioSendHandler {
 		}
 
 		TradeOffer t = new TradeOffer(e.getGuild(), userinfo, fromM, toM, ang, ford, coins);
+
+		if (userinfo.get("guild", "trades", HashMap.class) == null) {
+			userinfo.put("guild", "trades", new HashMap<Message, TradeOffer>());
+		}
+
 		try {
 			String p = "tradeoffer0.png";
 			File tradeoffer = new File(p);
 			ImageIO.write(t.getAsImage(), "png", tradeoffer);
-			e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).queue();
+			Message msg = e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).complete();
+			msg.addReaction(":thumbsup:");
+			msg.addReaction(":thumbsdown:");
+			userinfo.put("guild", "trades", userinfo.get("guild", "trades", HashMap.class).put(msg, t));
 		} catch (IOException | IllegalArgumentException e1) {
 			e1.printStackTrace();
 		}
 
 	}
 
+	public void cmdAcceptTrade(GuildMessageReactionAddEvent e, String[] cmd_body) {
+		Member m = e.getMember();
+		Message msg = e.retrieveMessage().complete();
+		try {
+			TradeOffer t = (TradeOffer) userinfo.get("guild", "trades", HashMap.class).get(msg);
+			if (t.getToMember().equals(m)) {
+				if (userinfo.get(m.getId(), "inventory", Inventory.class).getCoins() >= -t.getCoinBalance()) {
+					t.execute();
+				} else {
+					msg.removeReaction(":thumbsup:", m.getUser()).complete();
+//					userinfo.get("guild", "trades", HashMap.class).remove(msg);
+				}
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+			return;
+		}
+	}
+
+	public void cmdDeclineTrade(GuildMessageReactionAddEvent e, String[] cmd_body) {
+		Member m = e.getMember();
+		Message msg = e.retrieveMessage().complete();
+		try {
+			TradeOffer t = (TradeOffer) userinfo.get("guild", "trades", HashMap.class).get(msg);
+			if (t.getToMember().equals(m)) {
+				userinfo.get("guild", "trades", HashMap.class).remove(msg);
+				msg.delete().complete();
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+			return;
+		}
+	}
+
 	public void cmdInventory(GuildMessageReceivedEvent e, String[] cmd_body) {
-		if (!e.getGuild().getMember(e.getAuthor()).getRoles().contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+		if (!e.getGuild().getMember(e.getAuthor()).getRoles()
+				.contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
 			System.out.println("nicht Gnocci-Gang");
 			return;
 		}
-		
-		
+
 	}
 
 	public void cmdaddTag(GuildMessageReceivedEvent e, String[] cmd_body) {

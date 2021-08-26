@@ -37,7 +37,7 @@ public class ZitatMaster extends Bot {
 
 			UserInformation ui = new UserInformation(g);
 			
-			System.out.println(ui.get("guild", "zitate", ArrayList.class).size());
+//			System.out.println(ui.get("guild", "zitate", ArrayList.class).size());
 //			ui.put("general", "Int", 1);
 //
 //			ui.put("general", "Array", new Integer[][] { new Integer[] { 1, 2 }, new Integer[] { 4, 5 } });
@@ -65,18 +65,18 @@ public class ZitatMaster extends Bot {
 //
 //			ui.save();
 
-//			Handler handler = new Handler(g, ui);
-//
-//			h.put(g, handler);
-//			userinfo.put(g, ui);
-//
-//			Listener listener = listeners.get(listeners.size() - 1);
-//			listener.commands = new ArrayList<Command>();
-//			listener.g = g;
-//			listener.addHandler(handler);
-//			
-//
-//			addListener(new Listener(null, init));
+			Handler handler = new Handler(g, ui);
+
+			h.put(g, handler);
+			userinfo.put(g, ui);
+
+			Listener listener = listeners.get(listeners.size() - 1);
+			listener.commands = new ArrayList<Command>();
+			listener.g = g;
+			listener.addHandler(handler);
+			
+
+			addListener(new Listener(null, init));
 		}
 	}
 }
