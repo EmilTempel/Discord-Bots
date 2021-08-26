@@ -132,8 +132,8 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
 						this::cmdassignTag),
-				new ReactionAddCommand(":thumbsup:", this::cmdAcceptTrade),
-				new ReactionAddCommand(":thumbsdown:", this::cmdDeclineTrade) };
+				new ReactionAddCommand("thumbsup", this::cmdAcceptTrade),
+				new ReactionAddCommand("thumbsdown", this::cmdDeclineTrade) };
 
 		config = new Configuration(userinfo, commands);
 		config.initiateConfig(commands);
@@ -889,9 +889,9 @@ public class Handler implements AudioSendHandler {
 			File tradeoffer = new File(p);
 			ImageIO.write(t.getAsImage(), "png", tradeoffer);
 			Message msg = e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).complete();
-			msg.addReaction(":thumbsup:");
-			msg.addReaction(":thumbsdown:");
-			userinfo.put("guild", "trades", userinfo.get("guild", "trades", HashMap.class).put(msg, t));
+			msg.addReaction(g.getJDA().getEmotesByName("thumbsup", true).get(0)).complete();
+			msg.addReaction(g.getJDA().getEmotesByName("thumbsdown", true).get(0)).complete();
+			userinfo.get("guild", "trades", HashMap.class).put(msg, t);
 		} catch (IOException | IllegalArgumentException e1) {
 			e1.printStackTrace();
 		}
@@ -907,7 +907,7 @@ public class Handler implements AudioSendHandler {
 				if (userinfo.get(m.getId(), "inventory", Inventory.class).getCoins() >= -t.getCoinBalance()) {
 					t.execute();
 				} else {
-					msg.removeReaction(":thumbsup:", m.getUser()).complete();
+					msg.removeReaction("thumbsup", m.getUser()).complete();
 //					userinfo.get("guild", "trades", HashMap.class).remove(msg);
 				}
 			}
@@ -1025,6 +1025,5 @@ public class Handler implements AudioSendHandler {
 				}
 		}
 		userinfo.put(Id, "assign", z);
-		userinfo.put("guild", "zitate", zitate);
 	}
 }

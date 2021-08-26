@@ -38,7 +38,7 @@ public class UserInformation {
 				new Converter("Integer", Integer.class, (v, c) -> Integer.parseInt(v)),
 				new Converter("Double", Double.class, (v, c) -> Double.parseDouble(v)),
 				new Converter("String", String.class, (v, c) -> v),
-				new Converter("Zitat", Zitat.class, (v, c) -> null),
+//				new Converter("Zitat", Zitat.class, (v, c) -> null),
 				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(v, g)),
 				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {
 					String[] split = split(v);
@@ -196,10 +196,11 @@ public class UserInformation {
 			String key_type = "";
 			String value_type = "";
 			for (Entry<?, ?> e : map.entrySet()) {
-				key_type = toType(e.getKey());
-				value_type = toType(e.getValue());
+				key_type = e.getKey() != null ? toType(e.getKey()): null;
+				value_type = e.getValue() != null ? toType(e.getValue()): null;
 				if (key_type != null && value_type != null) {
 					str = o.getClass().getSimpleName() + "<[" + key_type + "],[" + value_type + "]>";
+					break;
 				}
 			}
 
