@@ -22,7 +22,7 @@ public class ZitatMaster extends Bot {
 
 	public ZitatMaster(String token) throws LoginException {
 		super(token);
-		setPresence(OnlineStatus.ONLINE, Activity.playing("eh keine Rolle"));
+		setPresence(OnlineStatus.ONLINE, Activity.watching("anderen bei der Arbeit zu"));
 		h = new HashMap<Guild, Handler>();
 		userinfo = new HashMap<Guild, UserInformation>();
 		init = new MessageCommand('\\', null, new String[][] { null }, (e, s) -> createHandler(e.getGuild()));

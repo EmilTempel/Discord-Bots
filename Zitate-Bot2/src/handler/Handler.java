@@ -36,6 +36,7 @@ import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
+import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -86,8 +87,6 @@ public class Handler implements AudioSendHandler {
 
 	ArrayList<Member> acceptParticipation, leaveEvent;
 
-	HashMap<Message, TradeOffer> trades;
-
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
@@ -132,11 +131,11 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
 						this::cmdassignTag),
-				new ReactionAddCommand("thumbsup", this::cmdAcceptTrade),
-				new ReactionAddCommand("thumbsdown", this::cmdDeclineTrade) };
+				new ReactionAddCommand("üëç", this::cmdAcceptTrade),
+				new ReactionAddCommand("üëé", this::cmdDeclineTrade),
+				new ReactionAddCommand("any", (e,s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction()))};
 
 		config = new Configuration(userinfo, commands);
-		config.initiateConfig(commands);
 		loadZitate();
 
 		bb = new ArrayList<ByteBuffer>();
@@ -526,7 +525,7 @@ public class Handler implements AudioSendHandler {
 		if (game == null) {
 			erg = "Zu welchem Spiel? Bist du eine angebrunste Seuchkachel?";
 		} else if (!game.isOver()) {
-			erg = "Das Spiel l‰uft doch noch du halber europ‰ischer Stˆr";
+			erg = "Das Spiel l√§uft doch noch du halber europ√§ischer St√∂r";
 		} else {
 			erg = game.ergebnis();
 		}
@@ -550,11 +549,11 @@ public class Handler implements AudioSendHandler {
 					System.out.println(x[i] + "   " + y[i]);
 				}
 
-				ArrayList<Spielzug> alle_z¸ge = b.giballeZ¸ge(Farbe.values()[p]);
+				ArrayList<Spielzug> alle_z√ºge = b.giballeZ√ºge(Farbe.values()[p]);
 
 				Spielzug z = new Spielzug(x[0], y[0], new Zug(x[1] - x[0], y[1] - y[0]));
 
-				if (z.isPartOf(alle_z¸ge)) {
+				if (z.isPartOf(alle_z√ºge)) {
 					b.ziehe(z);
 					p = 1 - p;
 				} else {
@@ -731,7 +730,7 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdConfig(GuildMessageReceivedEvent e, String[] cmd_body) {
-
+		System.out.println("config");
 		if (cmd_body.length != 3) {
 			sendMessage(config.getFormattedConfig(), e.getChannel());
 			sendMessage(
@@ -798,10 +797,10 @@ public class Handler implements AudioSendHandler {
 		Member m = e.getGuild().getMember(e.getAuthor());
 		if (!acceptParticipation.contains(m)) {
 			sendMessage(m.getAsMention() + "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
-					+ "auch wenn es verlockend w‰re, manche zu bevorzugen, aber dann machst du es kaputt :( "
+					+ "auch wenn es verlockend w√§re, manche zu bevorzugen, aber dann machst du es kaputt :( "
 					+ "Stimmst du zu? tippe <accept. Willst du nicht mitmachen, dann tippe <decline. "
-					+ "Falls du jemals wieder aussteigen mˆchtest, schreibe zweimal nacheinander <leaveSupercoolesEvent. "
-					+ "!Achtung! dein Inventar wird gelˆscht!", e.getChannel());
+					+ "Falls du jemals wieder aussteigen m√∂chtest, schreibe zweimal nacheinander <leaveSupercoolesEvent. "
+					+ "!Achtung! dein Inventar wird gel√∂scht!", e.getChannel());
 
 			acceptParticipation.add(m);
 		}
@@ -830,9 +829,10 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdLeaveEvent(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
+		String Id = e.getAuthor().getId();
 		if (leaveEvent.contains(m)) {
-			if (userinfo.get(m.getId(), "inventory", Inventory.class) != null) {
-				userinfo.put(m.getId(), "inventory", null);
+			if (userinfo.get(Id, "inventory", Inventory.class) != null) {
+				userinfo.put(Id, "inventory", null);
 			}
 			removeRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
@@ -888,10 +888,13 @@ public class Handler implements AudioSendHandler {
 			String p = "tradeoffer0.png";
 			File tradeoffer = new File(p);
 			ImageIO.write(t.getAsImage(), "png", tradeoffer);
-			Message msg = e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).complete();
-			msg.addReaction(g.getJDA().getEmotesByName("thumbsup", true).get(0)).complete();
-			msg.addReaction(g.getJDA().getEmotesByName("thumbsdown", true).get(0)).complete();
-			userinfo.get("guild", "trades", HashMap.class).put(msg, t);
+			e.getChannel().sendFile(tradeoffer, p).append(toM.getAsMention()).queue(m -> {
+				m.addReaction("üëç").queue();
+				m.addReaction("üëé").queue();
+				userinfo.get("guild", "trades", HashMap.class).put(m, t);
+			});
+			
+			
 		} catch (IOException | IllegalArgumentException e1) {
 			e1.printStackTrace();
 		}
@@ -907,7 +910,7 @@ public class Handler implements AudioSendHandler {
 				if (userinfo.get(m.getId(), "inventory", Inventory.class).getCoins() >= -t.getCoinBalance()) {
 					t.execute();
 				} else {
-					msg.removeReaction("thumbsup", m.getUser()).complete();
+					msg.removeReaction("üëç", m.getUser()).complete();
 //					userinfo.get("guild", "trades", HashMap.class).remove(msg);
 				}
 			}
@@ -948,7 +951,7 @@ public class Handler implements AudioSendHandler {
 		tags.add(cmd_body[0]);
 		userinfo.put("guild", "tags", tags);
 
-		sendMessage("Der Tag " + cmd_body[0] + " wurde hinzugef¸gt", e.getChannel());
+		sendMessage("Der Tag " + cmd_body[0] + " wurde hinzugef√ºgt", e.getChannel());
 	}
 
 	public void cmdremoveTag(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -958,7 +961,7 @@ public class Handler implements AudioSendHandler {
 		tags.remove(cmd_body[0]);
 		userinfo.put("guild", "tags", tags);
 
-		sendMessage("Der Tag " + cmd_body[0] + " wurde gelˆscht", e.getChannel());
+		sendMessage("Der Tag " + cmd_body[0] + " wurde gel√∂scht", e.getChannel());
 	}
 
 	public void cmdshowTags(GuildMessageReceivedEvent e, String[] cmd_body) {

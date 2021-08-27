@@ -1,1 +1,2 @@
-guild->{}
+guild->{config:[[]=[true],[participate]=[true],[assignTag]=[true],[ergebnisse]=[true],[skip]=[true],[addTag]=[true],[schach]=[true],[accept]=[true],[trza]=[true],[trade]=[true],[top]=[true],[stats]=[true],[rate]=[true],[guess]=[true],[decline]=[true],[removeTag]=[true],[spiel]=[true],[leaveSupercoolesEvent]=[true],[showTags]=[true],[config]=[true]]:HashMap<[String],[Boolean]>;tags:[[inzest]]:ArrayList<String>}
+426029391009677313->{}

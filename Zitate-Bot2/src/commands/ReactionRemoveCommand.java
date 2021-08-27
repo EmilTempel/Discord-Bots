@@ -16,8 +16,7 @@ public class ReactionRemoveCommand extends Command{
 	}
 
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "ReactionRemove";
 	}
 
 	public interface Executable{

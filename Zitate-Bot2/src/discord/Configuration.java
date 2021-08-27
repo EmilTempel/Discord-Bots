@@ -26,18 +26,22 @@ public class Configuration {
 			ui.put("guild", "config", activeCmds);
 		} else {
 			activeCmds = ui.get("guild", "config", HashMap.class);
+			System.out.println(activeCmds.toString());
 			for (int i = 0; i < cmd.length; i++) {
-				cmd[i].setActive(activeCmds.get(cmd[i].getName()));
+				Boolean b;
+				if ((b = activeCmds.get(cmd[i].getName())) != null) {
+					cmd[i].setActive(b);
+				}
 			}
 		}
 	}
 
 	public void set(String name, boolean b) {
 		activeCmds.put(name, b);
-		ui.put("guild", "config", activeCmds);
 		Command c = getCommandByName(name);
 		if (c != null)
 			c.setActive(b);
+		ui.save();
 	}
 
 	public void setAll(boolean b) {

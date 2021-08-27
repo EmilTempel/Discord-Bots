@@ -250,7 +250,7 @@ public class UserInformation {
 			return supported(type.substring(10, type.length() - 1));
 		} else if (type.matches("HashMap<.+,.+>")) {
 			String[] split = split(type.substring(8, type.length() - 1));
-			return supported(split[0]) && supported(split[1]);
+			return supported(split[0].substring(1,split[0].length()-1)) && supported(split[1].substring(1,split[1].length()-1));
 		}
 
 		for (Converter c : converters) {
