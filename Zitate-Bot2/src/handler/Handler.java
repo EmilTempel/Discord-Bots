@@ -36,13 +36,12 @@ import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
-import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
@@ -830,7 +829,7 @@ public class Handler implements AudioSendHandler {
 			}
 		}
 
-		TradeOffer t = new TradeOffer(e.getGuild(), userinfo, fromM, toM, ang, ford, coins);
+		TradeOffer t = new TradeOffer(e.getGuild(), userinfo, fromM.getUser(), toM.getUser(), ang, ford, coins);
 
 		if (userinfo.get("guild", "trades", HashMap.class) == null) {
 			userinfo.put("guild", "trades", new HashMap<Message, TradeOffer>());
@@ -853,15 +852,15 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdAcceptTrade(GuildMessageReactionAddEvent e, String[] cmd_body) {
-		Member m = e.getMember();
+		User m = e.getUser();
 		Message msg = e.retrieveMessage().complete();
 		try {
 			TradeOffer t = (TradeOffer) userinfo.get("guild", "trades", HashMap.class).get(msg);
-			if (t.getToMember().equals(m)) {
+			if (t.getToUser().equals(m)) {
 				if (userinfo.get(m.getId(), "inventory", Inventory.class).getCoins() >= -t.getCoinBalance()) {
 					t.execute();
 				} else {
-					msg.removeReaction("👍", m.getUser()).complete();
+					msg.removeReaction("👍", m).complete();
 //					userinfo.get("guild", "trades", HashMap.class).remove(msg);
 				}
 			}
@@ -872,11 +871,11 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdDeclineTrade(GuildMessageReactionAddEvent e, String[] cmd_body) {
-		Member m = e.getMember();
+		User m = e.getUser();
 		Message msg = e.retrieveMessage().complete();
 		try {
 			TradeOffer t = (TradeOffer) userinfo.get("guild", "trades", HashMap.class).get(msg);
-			if (t.getToMember().equals(m)) {
+			if (t.getToUser().equals(m)) {
 				userinfo.get("guild", "trades", HashMap.class).remove(msg);
 				msg.delete().complete();
 			}
