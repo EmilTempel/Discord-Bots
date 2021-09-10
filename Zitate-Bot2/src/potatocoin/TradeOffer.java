@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 
 public class TradeOffer {
@@ -47,7 +47,7 @@ public class TradeOffer {
 		String[] args1 = args[3].split(", ");
 		angZ = new ArrayList<Zitat>();
 		for (int i = 0; i < args1.length; i++) {
-			angZ.add(new )
+			angZ.add(new Zitat(new Message(args1[0])));
 		}
 	}
 
