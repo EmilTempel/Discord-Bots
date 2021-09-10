@@ -33,14 +33,14 @@ public class ScrollMessage {
 			m = g.getTextChannelsByName(channel, false).get(0).retrieveMessageById(MessageId).complete();
 	}
 
-	public void flipTo(int page, Message m) {
+	public void flipTo(int page) {
 		page = (page >= 0 ? page : 0) < content.length ? page : content.length;
 		m.editMessage(content[page]);
 		this.page = page;
 	}
 
-	public void flip(int dir, Message m) {
+	public void flip(int dir) {
 		dir = dir >= 0 ? 1 : -1;
-		flipTo(page + dir, m);
+		flipTo(page + dir);
 	}
 }
