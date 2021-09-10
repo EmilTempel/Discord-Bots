@@ -110,22 +110,22 @@ public class LootBox {
 		}
 
 	}
-	
-	public static void main(String[]args) {
-		ArrayList<Integer> nums = new ArrayList<Integer>();
-		ArrayList<Integer> counter = new ArrayList<Integer>();
-		
-		for(int i = 0; i < 1000; i++) {
-			nums.add(i);
-			counter.add(0);
-		}
-		
-		for(int i = 0; i < 100000; i++) {
-			Integer integer = getNormalDistributed(nums, standard_sigma, 0.5, 0);
-			counter.set(integer, counter.get(integer)+1);
-		}
-		
-		System.out.println(counter);
-	}
+//	
+//	public static void main(String[]args) {
+//		ArrayList<Integer> nums = new ArrayList<Integer>();
+//		ArrayList<Integer> counter = new ArrayList<Integer>();
+//		
+//		for(int i = 0; i < 1000; i++) {
+//			nums.add(i);
+//			counter.add(0);
+//		}
+//		
+//		for(int i = 0; i < 100000; i++) {
+//			Integer integer = getNormalDistributed(nums, standard_sigma, 0.5, 0);
+//			counter.set(integer, counter.get(integer)+1);
+//		}
+//		
+//		System.out.println(counter);
+//	}
 
 }

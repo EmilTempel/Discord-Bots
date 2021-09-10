@@ -92,6 +92,9 @@ public class Handler implements AudioSendHandler {
 		this.userinfo = userinfo;
 		this.zitate = userinfo.getZitatLoader().getZitate();
 		userinfo.put("guild", "zitate", zitate);
+		if(userinfo.get("guild", "ScrollMessages", ArrayList.class) == null)
+			userinfo.put("guild", "ScrollMessages", new ArrayList<ScrollMessage>());
+		
 		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
 				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
 				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
@@ -137,7 +140,13 @@ public class Handler implements AudioSendHandler {
 						this::cmdassignTag),
 				new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
 				new ReactionAddCommand("any",
-						(e, s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction())) };
+						(e, s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction())),
+				new ReactionAddCommand("any", this::cmdScroll),
+				new MessageCommand('<', new String[] {"test"}, new String[][] {}, (e, cmd_body) -> {
+					String[] content = {e.getMessage().getContentRaw(), "Jakob", "du", "Hurensohn", "!"};
+					ScrollMessage sm = new ScrollMessage(g, e.getChannel().getName(), e.getMessageId(), content, 0);
+					userinfo.get("guild", "ScrollMessages", ArrayList.class).add(sm);
+				})};
 
 		config = new Configuration(userinfo, commands);
 
@@ -984,6 +993,13 @@ public class Handler implements AudioSendHandler {
 		for(ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
 			if(sm.matches(e.getChannel().getName(), e.getMessageId())) {
 				sm.setMessage();
+				System.out.println(e.getReactionEmote().getName());
+				if(e.getReactionEmote().getName().equals("arrow_right")) {
+					sm.flip(1);
+				}else if(e.getReactionEmote().getName().equals("arrow_right")){
+					sm.flip(-1);
+				}
+				
 				break;
 			}
 		}
