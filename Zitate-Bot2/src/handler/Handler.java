@@ -32,6 +32,7 @@ import commands.MessageCommand;
 import commands.ReactionAddCommand;
 import discord.Configuration;
 import discord.Game;
+import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
@@ -164,7 +165,7 @@ public class Handler implements AudioSendHandler {
 
 	public Zitat getZitat(String path) {
 		return userinfo.getZitatLoader().getZitat(path);
-		
+
 	}
 
 	public Zitat randomZitat() {
@@ -280,7 +281,7 @@ public class Handler implements AudioSendHandler {
 		}
 
 		System.out.println(id);
-		Zitat[] temp =userinfo.get(id, "rating", Zitat[].class);
+		Zitat[] temp = userinfo.get(id, "rating", Zitat[].class);
 		if (temp == null || temp[0] == null || temp[1] == null) {
 			temp = new Zitat[2];
 
@@ -310,7 +311,7 @@ public class Handler implements AudioSendHandler {
 					}
 
 					int Ra = temp[r].getScore()[2];
-					int Rb = temp[1-r].getScore()[2];
+					int Rb = temp[1 - r].getScore()[2];
 
 					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
 
@@ -365,8 +366,7 @@ public class Handler implements AudioSendHandler {
 
 		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
 			Zitat z = getZitat(best[i]);
-			erg += i + ". " + z.getAll() + " :" + z.getScore()[2]
-					+ "\n";
+			erg += i + ". " + z.getAll() + " :" + z.getScore()[2] + "\n";
 		}
 
 		sendMessage(erg, e.getChannel());
@@ -978,5 +978,14 @@ public class Handler implements AudioSendHandler {
 				}
 		}
 		userinfo.put(Id, "assign", z);
+	}
+	
+	public void cmdScroll(GuildMessageReactionAddEvent e, String[] cmd_body) {
+		for(ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
+			if(sm.matches(e.getChannel().getName(), e.getMessageId())) {
+				sm.setMessage();
+				break;
+			}
+		}
 	}
 }

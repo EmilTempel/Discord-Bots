@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import potatocoin.Dropable.Rarity;
 
 public class ZitatLoader {
 
@@ -17,6 +18,7 @@ public class ZitatLoader {
 		loader = new MessageLoader(g, channels);
 		z = new HashMap<String, Zitat>();
 		load();
+		assignRarity();
 	}
 
 	public void load() {
@@ -24,6 +26,24 @@ public class ZitatLoader {
 			Zitat zitat = new Zitat(m);
 			if (zitat.isFull())
 				z.put(zitat.getPath(), zitat);
+		}
+	}
+	
+	public void assignRarity() {
+		ArrayList<Zitat> zitate = new ArrayList<Zitat>();
+		for(Zitat zitat : z.values()) {
+			zitate.add(zitat);
+		}
+		
+		zitate.sort((z1,z2) -> z2.getScore()[2]-z1.getScore()[2]);
+		
+		for(int i = 0; i < zitate.size(); i++) {
+			double percent = (i+1)/zitate.size();
+			for(Rarity r : Rarity.values()) {
+				if(percent >= r.getPercent()) {
+					zitate.get(i).setRarity(r);
+				}
+			}
 		}
 	}
 
