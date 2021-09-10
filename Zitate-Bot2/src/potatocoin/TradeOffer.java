@@ -13,17 +13,18 @@ import javax.imageio.ImageIO;
 import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 public class TradeOffer {
 
-	Member from, to;
+	User from, to;
 	ArrayList<Zitat> angZ, fordZ;
 	double coinBalance;
 	Guild guild;
 	UserInformation ui;
 
-	public TradeOffer(Guild guild, UserInformation ui, Member from, Member to, ArrayList<Zitat> angZ,
+	public TradeOffer(Guild guild, UserInformation ui, User from, User to, ArrayList<Zitat> angZ,
 			ArrayList<Zitat> fordZ, double coinBalance) {
 		this.guild = guild;
 		this.ui = ui;
@@ -33,6 +34,21 @@ public class TradeOffer {
 		this.fordZ = fordZ;
 		// CoinBalance > 0 ==> fromMember zahlt Coins an toMember
 		this.coinBalance = coinBalance;
+	}
+	
+	public TradeOffer(Guild guild, UserInformation ui, String fromString) {
+		String[] args = fromString.split(";");
+		this.guild = guild;
+		this.ui = ui;
+		from = guild.getJDA().getUserById(args[0]);
+		to = guild.getJDA().getUserById(args[1]);
+		coinBalance = Double.parseDouble(args[2]);
+		args[3] = args[3].substring(1, args[3].length() - 1);
+		String[] args1 = args[3].split(", ");
+		angZ = new ArrayList<Zitat>();
+		for (int i = 0; i < args1.length; i++) {
+			angZ.add(new Zitat(new Message(args1[0])));
+		}
 	}
 
 	public void execute() {
@@ -51,7 +67,7 @@ public class TradeOffer {
 		}
 	}
 	
-	public Member getToMember() {
+	public User getToUser() {
 		return to;
 	}
 	
@@ -90,10 +106,15 @@ public class TradeOffer {
 
 		g.setFont(new Font("Calibri", Font.BOLD, 50));
 		g.setColor(Color.BLACK);
-		g.drawString(to.getEffectiveName() + ",", 150, 700);
+		g.drawString(to.getName() + ",", 150, 700);
 
 		g.finalize();
 		return img;
 	}
-
+	
+	public String toString() {
+		String erg = from.getId() + ";" + to.getId() + ";" + coinBalance + ";" + angZ.toString() + ";" + fordZ.toString();
+		return erg;
+	}
+	
 }
