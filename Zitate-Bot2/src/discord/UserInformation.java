@@ -18,6 +18,7 @@ import potatocoin.Inventory;
 public class UserInformation {
 
 	Guild g;
+	ZitatLoader z_loader;
 	HashMap<String, HashMap<String, Object>> users;
 
 	String path;
@@ -26,6 +27,7 @@ public class UserInformation {
 
 	public UserInformation(Guild g) {
 		this.g = g;
+		this.z_loader = new ZitatLoader(g, "nostalgie-zitate", "zitate");
 		this.path = "Guild/" + g.getId() + "/userinfo";
 		File f = new File(path);
 		if (!f.exists())
@@ -38,8 +40,8 @@ public class UserInformation {
 				new Converter("Integer", Integer.class, (v, c) -> Integer.parseInt(v)),
 				new Converter("Double", Double.class, (v, c) -> Double.parseDouble(v)),
 				new Converter("String", String.class, (v, c) -> v),
-//				new Converter("Zitat", Zitat.class, (v, c) -> null),
-				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(v, g)),
+				new Converter("Zitat", Zitat.class, (v, c) -> z_loader.getZitat(StringToArray(v))),
+				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(StringToArray(v))),
 				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {
 					String[] split = split(v);
 					String element_type = c.substring(0, c.length() - 2);
@@ -54,7 +56,7 @@ public class UserInformation {
 					for (int i = 0; i < 2; i++) {
 						types[i] = types[i].substring(1, types[i].length() - 1);
 					}
-					System.out.println(Arrays.toString(types));
+
 					return createHashMap(getType(types[0]), getType(types[1]), split, types[0], types[1]);
 				}) };
 
@@ -141,17 +143,17 @@ public class UserInformation {
 				}
 			}
 		}
-		System.out.println(str);
+
 		if (c > 0)
 			str = str.substring(0, str.length() - 1);
-		System.out.println(str);
+
 		return str + "}";
 	}
 
 	public static String toFormat(Object o) {
 		String str = "[";
 		if (o == null) {
-			str = "null";
+			str += "null";
 		} else if (o instanceof Object[]) {
 			Object[] arr = (Object[]) o;
 			for (int i = 0; i < arr.length; i++) {
@@ -184,6 +186,8 @@ public class UserInformation {
 
 	public static String toType(Object o) {
 		String str = null;
+		if (o == null)
+			return null;
 
 		if (o instanceof ArrayList) {
 			ArrayList<?> list = (ArrayList<?>) o;
@@ -196,14 +200,13 @@ public class UserInformation {
 			String key_type = "";
 			String value_type = "";
 			for (Entry<?, ?> e : map.entrySet()) {
-				key_type = e.getKey() != null ? toType(e.getKey()): null;
-				value_type = e.getValue() != null ? toType(e.getValue()): null;
+				key_type = e.getKey() != null ? toType(e.getKey()) : null;
+				value_type = e.getValue() != null ? toType(e.getValue()) : null;
 				if (key_type != null && value_type != null) {
 					str = o.getClass().getSimpleName() + "<[" + key_type + "],[" + value_type + "]>";
 					break;
 				}
 			}
-
 		} else {
 			str = o.getClass().getSimpleName();
 		}
@@ -221,7 +224,7 @@ public class UserInformation {
 	public Object fromString(String value, String clazz) {
 		for (Converter c : converters) {
 			if (clazz.matches(c.regex)) {
-				System.out.println("fromString() has activated: " + clazz);
+
 				return c.convert(value.substring(1, value.length() - 1), clazz);
 			}
 		}
@@ -236,7 +239,7 @@ public class UserInformation {
 
 		for (Converter c : converters) {
 			if (clazz.matches(c.regex)) {
-				System.out.println("getType() works just fine: " + c.getClazz());
+
 				return c.getClazz();
 			}
 		}
@@ -250,7 +253,8 @@ public class UserInformation {
 			return supported(type.substring(10, type.length() - 1));
 		} else if (type.matches("HashMap<.+,.+>")) {
 			String[] split = split(type.substring(8, type.length() - 1));
-			return supported(split[0].substring(1,split[0].length()-1)) && supported(split[1].substring(1,split[1].length()-1));
+			return supported(split[0].substring(1, split[0].length() - 1))
+					&& supported(split[1].substring(1, split[1].length() - 1));
 		}
 
 		for (Converter c : converters) {
@@ -279,8 +283,7 @@ public class UserInformation {
 				}
 			}
 		}
-		System.out.println("before split(): " + str);
-		System.out.println("after split() " + values.toString());
+
 		return values.toArray(new String[values.size()]);
 	}
 
@@ -303,13 +306,39 @@ public class UserInformation {
 	public <Key, Value> HashMap<Key, Value> createHashMap(Class<Key> key, Class<Value> value, String[] values,
 			String key_type, String value_type) {
 		HashMap<Key, Value> map = new HashMap<Key, Value>();
-		System.out.println("Key = " + key);
-		System.out.println("Value = " + value);
+
 		for (int i = 0; i < values.length; i += 2) {
 			map.put(key.cast(fromString(values[i], key_type)), value.cast(fromString(values[i + 1], value_type)));
 		}
 
 		return map;
+	}
+
+	public Object[] StringToArray(String str) {
+		String[] split = split(str);
+		Object[] o = new Object[split.length];
+
+		for (int i = 0; i < split.length; i++) {
+			String[] s = split[i].substring(1, split[i].length() - 1).split("§");
+
+			o[i] = fromString(s[0], s[1]);
+		}
+		return o;
+	}
+
+	public static String ArrayToString(Object... o) {
+		String str = "";
+		for (int i = 0; i < o.length; i++) {
+			str += "[" + toFormat(o[i]) + "§" + toType(o[i]) + "]";
+			if (i != o.length - 1) {
+				str += ",";
+			}
+		}
+		return str;
+	}
+
+	public ZitatLoader getZitatLoader() {
+		return z_loader;
 	}
 
 	class Converter {

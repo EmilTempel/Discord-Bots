@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
+import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,28 +29,10 @@ public class Inventory {
 		this.challenges = challenges;
 	}
 
-	public Inventory(String userinfoString, Guild g) {
-		String[] s = userinfoString.split(" | ");
-		coins = Double.parseDouble(s[0].split(" ")[2]);
-
-		String[] sz = s[1].split(" ");
-		zitate = new ArrayList<Zitat>();
-		TextChannel tc = g.getTextChannelsByName("zitate", true).get(0);
-		for (int i = 1; i < sz.length; i++) {
-			zitate.add(new Zitat(tc.retrieveMessageById(sz[i]).complete()));
-		}
-
-		s[2] = s[2].substring(13, s[2].length() - 1);
-		String[] sc = s[2].split(", ");
-		challenges = new HashMap<Challenge, Boolean>();
-		for (int i = 0; i < sc.length; i++) {
-			String[] sc0 = sc[i].split("=");
-			try {
-				challenges.put(new Challenge(sc0[0]), Boolean.parseBoolean(sc0[1]));
-			} catch (NullPointerException n) {
-				n.printStackTrace();
-			}
-		}
+	public Inventory(Object[] o) {
+		this.coins = (double) o[0];
+		this.zitate = (ArrayList<Zitat>) o[1];
+		this.challenges = (HashMap<Challenge, Boolean>) o[2];
 	}
 
 	public void addCoins(double amount) {
@@ -146,20 +129,6 @@ public class Inventory {
 	}
 
 	public String toString() {
-		String erg = "Inventory: Coins: ";
-
-		erg += coins;
-
-		erg += " | Zitate-IDs:";
-
-		for (int i = 0; i < zitate.size(); i++) {
-			erg += " " + zitate.get(i).toString();
-		}
-
-		erg += " | Challenges: ";
-
-		erg += challenges.toString();
-
-		return erg;
+		return UserInformation.ArrayToString(coins,zitate,challenges);
 	}
 }

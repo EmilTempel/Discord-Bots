@@ -2,14 +2,16 @@ package discord;
 
 import java.util.ArrayList;
 
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import potatocoin.Dropable;
+import potatocoin.Inventory;
 
-public class Zitat {
+public class Zitat extends Dropable{
 
-	String inhalt, autor, untertitel, schreiber, ID;
-	int elo, wins, playouts;
+	String inhalt, autor, untertitel, schreiber, ID, channel;
+	Integer[] score; 
 	ArrayList<String> tags;
+	String besitzer;
 
 	public Zitat(Message msg) {
 		String z = msg.getContentRaw();
@@ -23,17 +25,15 @@ public class Zitat {
 				untertitel = u[1].trim();
 			}
 
-			schreiber = msg.getAuthor().getName().trim();
+			schreiber = msg.getAuthor().isBot() ? z.split("<")[1].replace(">","") : msg.getAuthor().getName().trim();
 			ID = msg.getId();
+			channel = msg.getChannel().getName();
 		}
+		score = new Integer[] {0,0,0};
 		tags = new ArrayList<String>();
+		besitzer = null;
 	}
 	
-	public Zitat(String[] values, Guild g) {
-		
-		
-		
-	}
 
 	public boolean isFull() {
 		return inhalt != null && autor != null && untertitel != null && schreiber != null;
@@ -58,20 +58,58 @@ public class Zitat {
 	public String getSchreiber() {
 		return schreiber;
 	}
+	
+	public String getChannel() {
+		return channel;
+	}
 
 	public String getID() {
 		return ID;
+	}
+
+	public String getPath() {
+		return channel+"/"+ID;
+	}
+	
+	public void setScore(int i, int value) {
+		score[i] = value;
+	}
+	
+	public void setScore(Integer[] arr) {
+		score = arr;
+	}
+	
+	public Integer[] getScore() {
+		return score;
 	}
 	
 	public void addTag(String tag) {
 		tags.add(tag);
 	}
 	
+	public void setTags(ArrayList<String> list) {
+		tags = list;
+	}
+	
 	public ArrayList<String> getTags(){
 		return tags;
 	}
 	
+	public void setBesitzer(String besitzer) {
+		this.besitzer = besitzer;
+	}
+	
+	public String getBesitzer() {
+		return besitzer;
+	}
+	
 	public String toString() {
-		return ID + "," + elo + "," + wins + "," + playouts + "," + tags.toString().replace("[", "").replace("]", "");
+		return UserInformation.ArrayToString(new Object[] {channel, ID, score, tags, besitzer});
+	}
+
+	public void drop(UserInformation ui, String UserId) {
+		Inventory i = ui.get(UserId, "inventory", Inventory.class);
+		i.addZitat(this);
+		besitzer = UserId;
 	}
 }

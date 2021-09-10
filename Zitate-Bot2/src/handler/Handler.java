@@ -90,11 +90,15 @@ public class Handler implements AudioSendHandler {
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-
-		commands = new Command[] {
-				new MessageCommand(
-						'<', new String[] { "stats" }, new String[][] { new String[] { "\\w+" } }, this::cmdStats),
-				new MessageCommand('"', null, new String[][] { null }, (e, s) -> loadZitate()),
+		this.zitate = userinfo.getZitatLoader().getZitate();
+		userinfo.put("guild", "zitate", zitate);
+		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
+				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
+				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
+					Zitat z = new Zitat(e.getMessage());
+					if (z.isFull())
+						zitate.add(z);
+				}),
 				new MessageCommand('<', new String[] { "rate", "r" },
 						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
 				new MessageCommand('<', new String[] { "top" },
@@ -131,12 +135,11 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
 						this::cmdassignTag),
-				new ReactionAddCommand("👍", this::cmdAcceptTrade),
-				new ReactionAddCommand("👎", this::cmdDeclineTrade),
-				new ReactionAddCommand("any", (e,s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction()))};
+				new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
+				new ReactionAddCommand("any",
+						(e, s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction())) };
 
 		config = new Configuration(userinfo, commands);
-		loadZitate();
 
 		bb = new ArrayList<ByteBuffer>();
 
@@ -160,12 +163,9 @@ public class Handler implements AudioSendHandler {
 		return temp;
 	}
 
-	public Zitat getZitat(String ID) {
-		for (int i = 0; i < zitate.size(); i++) {
-			if (zitate.get(i).getID().contentEquals(ID))
-				return zitate.get(i);
-		}
-		return null;
+	public Zitat getZitat(String path) {
+		return userinfo.getZitatLoader().getZitat(path);
+		
 	}
 
 	public Zitat randomZitat() {
@@ -173,58 +173,10 @@ public class Handler implements AudioSendHandler {
 		return z;
 	}
 
-	public List<Zitat> loadZitate() {
-		zitate = new ArrayList<Zitat>();
-		scores = new HashMap<String, Integer[]>();
-
-		ArrayList<Message> messages = new ArrayList<Message>();
-
-		TextChannel channel = g.getTextChannelsByName("zitate", true).get(0);
-
-		String latest = MessageHistory.getHistoryFromBeginning(channel).limit(1).complete().getRetrievedHistory().get(0)
-				.getId();
-		String curr = channel.getLatestMessageId();
-
-		MessageHistory ms = channel.getHistoryAround(curr, 1).complete();
-
-//		System.out.println(channel.retrieveMessageById(latest).complete().getContentRaw());
-//		System.out.println(channel.retrieveMessageById(curr).complete().getContentRaw());
-
-		messages.add(channel.retrieveMessageById(curr).complete());
-		System.out.println(latest + "   " + curr);
-
-		while (latest.equals(curr) == false) {
-			ms = channel.getHistoryBefore(curr, 100).complete();
-			messages.addAll(ms.getRetrievedHistory());
-			curr = ms.getRetrievedHistory().get(ms.size() - 1).getId();
-			System.out.println(channel.retrieveMessageById(curr).complete().getContentRaw());
-			System.out.println(ms.getRetrievedHistory().size());
-		}
-
-		List<Message> h = new ArrayList<Message>();
-
-		for (int i = messages.size() - 1; i >= 0; i--) {
-			h.add(messages.get(i));
-		}
-
-		h.forEach(m -> {
-			Zitat z = new Zitat(m);
-			if (z.isFull()) {
-				zitate.add(z);
-				scores.put(z.getID(), new Integer[] { 0, 0, 0 });
-			}
-		});
-		loadScores();
-
-		System.out.println("successfully loaded");
-		return zitate;
-	}
-
 	public int lowestZitat() {
 		int min = (int) Double.POSITIVE_INFINITY;
 		for (Zitat z : zitate) {
-			String ID = z.getID();
-			int n = scores.get(ID)[1];
+			int n = z.getScore()[2];
 
 			if (n < min) {
 				min = n;
@@ -237,11 +189,10 @@ public class Handler implements AudioSendHandler {
 
 	public Zitat get_lOR_Zitat(int n) {
 		List<Zitat> temp = new ArrayList<Zitat>();
-		for (int i = 0; i < zitate.size(); i++) {
-			String ID = zitate.get(i).getID();
+		for (Zitat z : zitate) {
 
-			if (scores.get(ID)[1] == n) {
-				temp.add(zitate.get(i));
+			if (z.getScore()[1] == n) {
+				temp.add(z);
 			}
 
 		}
@@ -320,7 +271,7 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
-		loadScores();
+//		loadScores();
 		String erg = "";
 		String id = e.getAuthor().getId();
 		int c = 0;
@@ -330,8 +281,9 @@ public class Handler implements AudioSendHandler {
 		}
 
 		System.out.println(id);
-		if (userinfo.get(id, "rating", Object.class) == null) {
-			Zitat[] temp = new Zitat[2];
+		Zitat[] temp =userinfo.get(id, "rating", Zitat[].class);
+		if (temp == null || temp[0] == null || temp[1] == null) {
+			temp = new Zitat[2];
 
 			int n = lowestZitat();
 
@@ -349,25 +301,24 @@ public class Handler implements AudioSendHandler {
 				int r = Integer.parseInt(cmd_body[c]) - 1;
 
 				if (r == 0 || r == 1) {
-					Zitat[] temp = userinfo.get(id, "rating", Zitat[].class);
 					for (int i = 0; i < temp.length; i++)
-						System.out.println(temp);
+						System.out.println(temp[i]);
 
-					scores.get(temp[r].getID())[0] += 1;
+					temp[r].getScore()[0] += 1;
 
 					for (int i = 0; i < 2; i++) {
-						scores.get(temp[i].getID())[1] += 1;
+						temp[i].getScore()[1] += 1;
 					}
 
-					int Ra = scores.get(temp[r].getID())[2];
-					int Rb = scores.get(temp[1 - r].getID())[2];
+					int Ra = temp[r].getScore()[2];
+					int Rb = temp[1-r].getScore()[2];
 
 					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
 
 					int change = (int) (K * (1 - expected));
 
-					scores.get(temp[r].getID())[2] += change;
-					scores.get(temp[1 - r].getID())[2] -= change;
+					temp[r].getScore()[2] += change;
+					temp[1 - r].getScore()[2] -= change;
 
 					erg = "Voted for: " + temp[r].getAll();
 
@@ -382,7 +333,7 @@ public class Handler implements AudioSendHandler {
 
 		sendMessage(erg, e.getChannel());
 
-		saveScores();
+//		saveScores();
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -404,9 +355,9 @@ public class Handler implements AudioSendHandler {
 
 		Map<String, Integer> map = new HashMap<String, Integer>();
 
-		for (Entry<String, Integer[]> entry : scores.entrySet()) {
-			Integer[] score = entry.getValue();
-			map.put(entry.getKey(), score[2]);
+		for (Zitat z : zitate) {
+			Integer[] score = z.getScore();
+			map.put(z.getPath(), score[2]);
 		}
 
 		String sorted = toString(map.entrySet(), true, false, true);
@@ -414,7 +365,8 @@ public class Handler implements AudioSendHandler {
 		String[] best = sorted.split(",");
 
 		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
-			erg += i + ". " + getZitat(best[i]).getAll() + " :" + (map.get(best[i])) + " aus " + scores.get(best[i])[1]
+			Zitat z = getZitat(best[i]);
+			erg += i + ". " + z.getAll() + " :" + z.getScore()[2]
 					+ "\n";
 		}
 
@@ -893,8 +845,7 @@ public class Handler implements AudioSendHandler {
 				m.addReaction("👎").queue();
 				userinfo.get("guild", "trades", HashMap.class).put(m, t);
 			});
-			
-			
+
 		} catch (IOException | IllegalArgumentException e1) {
 			e1.printStackTrace();
 		}
