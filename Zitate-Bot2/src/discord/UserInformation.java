@@ -8,12 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import net.dv8tion.jda.api.entities.Guild;
 import potatocoin.Inventory;
+import potatocoin.TradeOffer;
 
 public class UserInformation {
 
@@ -43,7 +43,11 @@ public class UserInformation {
 				new Converter("String", String.class, (v, c) -> v),
 				new Converter("Zitat", Zitat.class, (v, c) -> z_loader.getZitat(StringToArray(v))),
 				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(StringToArray(v))),
+
+				new Converter("TradeOffer", TradeOffer.class, (v, c) -> new TradeOffer(g, this, StringToArray(v))),
+
 				new Converter("ScrollMessage", ScrollMessage.class, (v,c) -> new ScrollMessage(g, StringToArray(v))),
+
 				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {
 					String[] split = split(v);
 					String element_type = c.substring(0, c.length() - 2);

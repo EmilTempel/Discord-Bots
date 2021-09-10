@@ -13,7 +13,6 @@ import javax.imageio.ImageIO;
 import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 
 public class TradeOffer {
@@ -36,19 +35,30 @@ public class TradeOffer {
 		this.coinBalance = coinBalance;
 	}
 	
-	public TradeOffer(Guild guild, UserInformation ui, String fromString) {
-		String[] args = fromString.split(";");
+//	public TradeOffer(Guild guild, UserInformation ui, String fromString) {
+//		String[] args = fromString.split(";");
+//		this.guild = guild;
+//		this.ui = ui;
+//		from = guild.getJDA().getUserById(args[0]);
+//		to = guild.getJDA().getUserById(args[1]);
+//		coinBalance = Double.parseDouble(args[2]);
+//		args[3] = args[3].substring(1, args[3].length() - 1);
+//		String[] args1 = args[3].split(", ");
+//		angZ = new ArrayList<Zitat>();
+//		for (int i = 0; i < args1.length; i++) {
+//			angZ.add(new Zitat(new Message(args1[0])));
+//		}
+//	}
+	
+	public TradeOffer(Guild guild, UserInformation ui, Object[] o) {
 		this.guild = guild;
 		this.ui = ui;
-		from = guild.getJDA().getUserById(args[0]);
-		to = guild.getJDA().getUserById(args[1]);
-		coinBalance = Double.parseDouble(args[2]);
-		args[3] = args[3].substring(1, args[3].length() - 1);
-		String[] args1 = args[3].split(", ");
-		angZ = new ArrayList<Zitat>();
-		for (int i = 0; i < args1.length; i++) {
-			angZ.add(new Zitat(new Message(args1[0])));
-		}
+		this.from = (User) o[0];
+		this.to = (User) o[1];
+		// CoinBalance > 0 ==> fromMember zahlt Coins an toMember
+		this.coinBalance = (double) o[2];
+		this.angZ = (ArrayList<Zitat>) o[3];
+		this.fordZ = (ArrayList<Zitat>) o[4];
 	}
 
 	public void execute() {
@@ -113,8 +123,9 @@ public class TradeOffer {
 	}
 	
 	public String toString() {
-		String erg = from.getId() + ";" + to.getId() + ";" + coinBalance + ";" + angZ.toString() + ";" + fordZ.toString();
-		return erg;
+//		String erg = from.getId() + ";" + to.getId() + ";" + coinBalance + ";" + angZ.toString() + ";" + fordZ.toString();
+//		return erg;
+		return UserInformation.ArrayToString(from, to, coinBalance, angZ, fordZ);
 	}
 	
 }

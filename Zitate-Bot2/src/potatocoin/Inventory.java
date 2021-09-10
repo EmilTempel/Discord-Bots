@@ -129,6 +129,6 @@ public class Inventory {
 	}
 
 	public String toString() {
-		return UserInformation.ArrayToString(coins,zitate,challenges);
+		return UserInformation.ArrayToString(coins, zitate, challenges);
 	}
 }
