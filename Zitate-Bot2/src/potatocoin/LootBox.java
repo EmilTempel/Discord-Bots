@@ -61,21 +61,24 @@ public class LootBox {
 	}
 
 	public enum Type {
-		veryBad(standard_sigma, 0, 0, Type::getZitate),
-		Basic(standard_sigma, 0.5, 0, Type::getZitate),
-		CoinMaster(standard_sigma, 0.5, 0, ui -> Money.getDistribution()), 
-		Potaemom(standard_sigma, 0.5, 0, ui -> null),
-		Boss(standard_sigma, 0.75, 0, Type::getavailableZitate),
-		ExtremeDangerDangerHighDanger(standard_sigma, 0.5, getT(standard_sigma), Type::getZitate);
+		veryBad(standard_sigma, 0, 0, Type::getZitate, 20),
+		Basic(standard_sigma, 0.5, 0, Type::getZitate, 50),
+		CoinMaster(standard_sigma, 0.5, 0, ui -> Money.getDistribution(), 15), 
+		//TODO VVV
+		Potaemom(standard_sigma, 0.5, 0, ui -> null, 150),
+		Boss(standard_sigma, 0.75, 0, Type::getAvailableZitate, 200),
+		ExtremeDangerDangerHighDanger(standard_sigma, 0.5, getT(standard_sigma), Type::getZitate, 100);
 
 		double sigma, myu, t;
 		Function f;
+		double price;
 
-		Type(double sigma, double myu, double t, Function f) {
+		Type(double sigma, double myu, double t, Function f, double price) {
 			this.sigma = sigma;
 			this.myu = myu;
 			this.t = t;
 			this.f = f;
+			this.price = price;
 		}
 
 		public ArrayList<Dropable> getDropables(UserInformation ui) {
@@ -90,7 +93,7 @@ public class LootBox {
 			return list;
 		}
 		
-		static ArrayList<Dropable> getavailableZitate(UserInformation ui){
+		static ArrayList<Dropable> getAvailableZitate(UserInformation ui){
 			ArrayList<Zitat> zitate = ui.get("guild", "zitate", ArrayList.class);
 			ArrayList<Dropable> list = new ArrayList<Dropable>();
 			
@@ -110,22 +113,22 @@ public class LootBox {
 		}
 
 	}
-	
-	public static void main(String[]args) {
-		ArrayList<Integer> nums = new ArrayList<Integer>();
-		ArrayList<Integer> counter = new ArrayList<Integer>();
-		
-		for(int i = 0; i < 1000; i++) {
-			nums.add(i);
-			counter.add(0);
-		}
-		
-		for(int i = 0; i < 100000; i++) {
-			Integer integer = getNormalDistributed(nums, standard_sigma, 0.5, 0);
-			counter.set(integer, counter.get(integer)+1);
-		}
-		
-		System.out.println(counter);
-	}
+//	
+//	public static void main(String[]args) {
+//		ArrayList<Integer> nums = new ArrayList<Integer>();
+//		ArrayList<Integer> counter = new ArrayList<Integer>();
+//		
+//		for(int i = 0; i < 1000; i++) {
+//			nums.add(i);
+//			counter.add(0);
+//		}
+//		
+//		for(int i = 0; i < 100000; i++) {
+//			Integer integer = getNormalDistributed(nums, standard_sigma, 0.5, 0);
+//			counter.set(integer, counter.get(integer)+1);
+//		}
+//		
+//		System.out.println(counter);
+//	}
 
 }
