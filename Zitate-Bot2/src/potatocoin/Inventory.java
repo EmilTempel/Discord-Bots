@@ -21,18 +21,21 @@ public class Inventory {
 
 	private double coins;
 	private ArrayList<Zitat> zitate;
+	private ArrayList<LootBox> lootboxen;
 	private HashMap<Challenge, Boolean> challenges;
 
-	public Inventory(double coins, ArrayList<Zitat> zitate, HashMap<Challenge, Boolean> challenges) {
+	public Inventory(double coins, ArrayList<Zitat> zitate, ArrayList<LootBox> lootboxen, HashMap<Challenge, Boolean> challenges) {
 		this.coins = coins;
 		this.zitate = zitate;
+		this.lootboxen = lootboxen;
 		this.challenges = challenges;
 	}
 
 	public Inventory(Object[] o) {
 		this.coins = (double) o[0];
 		this.zitate = (ArrayList<Zitat>) o[1];
-		this.challenges = (HashMap<Challenge, Boolean>) o[2];
+		this.lootboxen = (Lootbox) o[2];
+		this.challenges = (HashMap<Challenge, Boolean>) o[3];
 	}
 
 	public void addCoins(double amount) {
@@ -113,22 +116,23 @@ public class Inventory {
 		return img;
 	}
 	
-	public String[] getFormatted(Member m) {
+	public String[][][] toFormat(Member m) {
 		int size = zitate.size() / 5;
 		if (size % 5 != 0) {
 			size++;
 		}
-		String[] erg = new String[size];
-		
-		erg[0] = m.getUser().getName() + "'s Inventory: \n";
-		erg[0] += coins + " :toffler:";
-		
-		
-		
+		String[][][] erg = null;
+//				new String[size];
+//		
+//		erg[0] = m.getUser().getAsMention() + "'s Inventory: \n";
+//		erg[0] += coins + " :toffler:";
+//		
+//		
+//		
 		return erg;
 	}
 
 	public String toString() {
-		return UserInformation.ArrayToString(coins, zitate, challenges);
+		return UserInformation.ArrayToString(coins, lootboxen, zitate, challenges);
 	}
 }

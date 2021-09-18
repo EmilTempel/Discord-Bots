@@ -142,8 +142,8 @@ public class Handler implements AudioSendHandler {
 				new ReactionAddCommand("any",
 						(e, s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction())),
 				new ReactionAddCommand("any", this::cmdScroll),
-				new MessageCommand('<', new String[] {"test"}, new String[][] {}, (e, cmd_body) -> {
-					String[] content = {e.getMessage().getContentRaw(), "Jakob", "du", "Hurensohn", "!"};
+				new MessageCommand('<', new String[] {"test"}, new String[][] {}, (e, cmd_body) -> {					
+					String[] content = {e.getMessage().getContentRaw(), "Emil", "du", "Hurensohn", "!"};
 					ScrollMessage sm = new ScrollMessage(g, e.getChannel().getName(), e.getMessageId(), content, 0);
 					userinfo.get("guild", "ScrollMessages", ArrayList.class).add(sm);
 				})};

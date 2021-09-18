@@ -85,6 +85,11 @@ public class Shop {
 		}
 	}
 
+	public void buy(int page, int item) {
+		Inventory inv = ui.get(toUser.getId(), "inventory", Inventory.class);
+		
+	}
+
 	public String[][][] toFormat() {
 		// Format: [0][0][0]: Titel, [0][0][1]: Description
 		// erste Klammer: Seite (beginnt mit 1), [Seite][0][0]: Name der Seite
@@ -93,8 +98,10 @@ public class Shop {
 
 		String[][][] erg = new String[][][] { new String[dailyOffer.size() + 1][3],
 				new String[Type.values().length + 1][3],
-				new String[][] { new String[] { "Potaemon Stuff" }, new String[] { "coming soon", "arschloch", "false" } },
-				new String[][] { new String[] { "Challenges" }, new String[] { "under construction", "du huso", "false" } } };
+				new String[][] { new String[] { "Potaemon Stuff" },
+						new String[] { "coming soon", "arschloch", "false" } },
+				new String[][] { new String[] { "Challenges" },
+						new String[] { "under construction", "du huso", "false" } } };
 
 		erg[0][0][0] = "Zitate im Angebot";
 		erg[1][0][0] = "LootBoxen";
