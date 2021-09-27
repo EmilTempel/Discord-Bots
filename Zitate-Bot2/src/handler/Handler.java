@@ -37,7 +37,7 @@ import discord.UserInformation;
 import discord.Zitat;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
-import net.dv8tion.jda.api.entities.Activity.Emoji;
+import discord.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -823,7 +823,7 @@ public class Handler implements AudioSendHandler {
 			acceptParticipation.remove(m);
 			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
 				userinfo.put(m.getId(), "inventory",
-						new Inventory(0, new ArrayList<Zitat>(), new HashMap<Challenge, Boolean>()));
+						new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(), new HashMap<Challenge, Boolean>()));
 			}
 			giveRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
@@ -971,7 +971,7 @@ public class Handler implements AudioSendHandler {
 		if (shop == null) {
 			shop = userinfo.get("guild", "shop", Shop.class);
 			if (shop == null) {
-				shop = new Shop(g, userinfo, 1, null, 0, null);
+				shop = new Shop(userinfo, 1, null, 0, null);
 				userinfo.put("guild", "shop", shop);
 				shop.refresh();
 			}

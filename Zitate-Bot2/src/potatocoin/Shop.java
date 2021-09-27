@@ -23,23 +23,25 @@ public class Shop {
 	final static Dropable.Rarity[] includedInDailyOffers = { Dropable.Rarity.geringverdienend,
 			Dropable.Rarity.sonervigeinfach, Dropable.Rarity.uuitoll };
 
-	static Emote reactionBuy = null, reactionScrollUp = null, reactionScrollDown = null, reactionScrollRight = null,
-			reactionScrollLeft = null;
-	final static String buyName = ":geldluis:", scrollUpId = "U+2B06", scrollDownId = "U+2B07",
-			scrollRightId = "U+27A1", scrollLeftId = "U+2B05";
+//	static Emote reactionBuy = null, reactionScrollUp = null, reactionScrollDown = null, reactionScrollRight = null,
+//			reactionScrollLeft = null;
+//	final static String buyName = ":geldluis:", scrollUpId = "U+2B06", scrollDownId = "U+2B07",
+//			scrollRightId = "U+27A1", scrollLeftId = "U+2B05";
 
 	UserInformation ui;
 
 	double nextResetInMins = 60 * 24;
 	final static int resetIntervalMins = 24 * 60;
 
-	public Shop(Guild g, UserInformation ui, double factor, ArrayList<Zitat> dailyOffer, double nextResetInMins,
+	public Shop(
+//			Guild g, 
+			UserInformation ui, double factor, ArrayList<Zitat> dailyOffer, double nextResetInMins,
 			User toUser) {
-		reactionBuy = g.getEmotesByName(buyName, true).get(0);
-		reactionScrollUp = g.getJDA().getEmoteById(scrollUpId);
-		reactionScrollDown = g.getJDA().getEmoteById(scrollDownId);
-		reactionScrollRight = g.getJDA().getEmoteById(scrollRightId);
-		reactionScrollLeft = g.getJDA().getEmoteById(scrollLeftId);
+//		reactionBuy = g.getEmotesByName(buyName, true).get(0);
+//		reactionScrollUp = g.getJDA().getEmoteById(scrollUpId);
+//		reactionScrollDown = g.getJDA().getEmoteById(scrollDownId);
+//		reactionScrollRight = g.getJDA().getEmoteById(scrollRightId);
+//		reactionScrollLeft = g.getJDA().getEmoteById(scrollLeftId);
 
 		this.factor = factor;
 		this.dailyOffer = dailyOffer;
@@ -47,12 +49,14 @@ public class Shop {
 		this.toUser = toUser;
 	}
 
-	public Shop(Guild g, UserInformation ui, Object[] o) {
-		reactionBuy = g.getEmotesByName(buyName, true).get(0);
-		reactionScrollUp = g.getJDA().getEmoteById(scrollUpId);
-		reactionScrollDown = g.getJDA().getEmoteById(scrollDownId);
-		reactionScrollRight = g.getJDA().getEmoteById(scrollRightId);
-		reactionScrollLeft = g.getJDA().getEmoteById(scrollLeftId);
+	public Shop(
+//			Guild g, 
+			UserInformation ui, Object[] o) {
+//		reactionBuy = g.getEmotesByName(buyName, true).get(0);
+//		reactionScrollUp = g.getJDA().getEmoteById(scrollUpId);
+//		reactionScrollDown = g.getJDA().getEmoteById(scrollDownId);
+//		reactionScrollRight = g.getJDA().getEmoteById(scrollRightId);
+//		reactionScrollLeft = g.getJDA().getEmoteById(scrollLeftId);
 
 		this.factor = (double) o[0];
 		this.dailyOffer = (ArrayList<Zitat>) o[1];
@@ -65,7 +69,7 @@ public class Shop {
 	}
 	
 	public void cloneTo(User u) {
-		ui.put(u.getId(), "shop", new Shop(g, ui, factor, dailyOffer, nextResetInMins, u));
+		ui.put(u.getId(), "shop", new Shop(ui, factor, dailyOffer, nextResetInMins, u));
 	}
 
 	public ArrayList<Zitat> getIncludedAvailableZitate() {
