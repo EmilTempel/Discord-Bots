@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.dv8tion.jda.api.entities.Message;
 import potatocoin.Dropable;
 import potatocoin.Inventory;
+import potatocoin.Shop;
 
 public class Zitat extends Dropable{
 
@@ -101,6 +102,11 @@ public class Zitat extends Dropable{
 	
 	public String getBesitzer() {
 		return besitzer;
+	}
+	
+	public double calcPrice() {
+		double erg = score[2] * Shop.pricePerScore;
+		return (erg < Shop.minPrice)? Shop.minPrice : erg;
 	}
 	
 	public String toString() {
