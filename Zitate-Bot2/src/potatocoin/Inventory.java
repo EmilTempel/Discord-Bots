@@ -23,6 +23,8 @@ public class Inventory {
 	private ArrayList<Zitat> zitate;
 	private ArrayList<LootBox> lootboxen;
 	private HashMap<Challenge, Boolean> challenges;
+	
+	private static int itemsPerPage = 5;
 
 	public Inventory(double coins, ArrayList<Zitat> zitate, ArrayList<LootBox> lootboxen, HashMap<Challenge, Boolean> challenges) {
 		this.coins = coins;
@@ -117,11 +119,57 @@ public class Inventory {
 	}
 	
 	public String[][][] toFormat(Member m) {
-		int size = zitate.size() / 5;
-		if (size % 5 != 0) {
-			size++;
+		int size0 = zitate.size() / itemsPerPage;
+		if (zitate.size() % itemsPerPage != 0) {
+			size0++;
 		}
-		String[][][] erg = null;
+		int size1 = lootboxen.size() / itemsPerPage;
+		if (lootboxen.size() % itemsPerPage != 0) {
+			size1++;
+		}
+		int size2 = challenges.size() / itemsPerPage;
+		if (challenges.size() % itemsPerPage != 0) {
+			size2++;
+		}
+		String[][][] erg = new String[size0 + size1 + size2][][];
+		
+		for (int i = 0; i < size0; i++) {
+			erg[i][0][0] = "Zitate";
+			for (int j = 1; j < itemsPerPage + 1; j++) {
+				try {
+					erg[i][j][1] = zitate.get(i * itemsPerPage + j - 1).getRarity() + "enes Zitat";
+					erg[i][j][1] = zitate.get(i * itemsPerPage + j - 1).getAll();
+				}catch(Exception x) {
+					x.printStackTrace();
+					break;
+				}
+			}
+		}
+		for (int i = size0; i < size0 + size1; i++) {
+			erg[i][0][0] = "Lootboxen";
+			for (int j = 1; j < itemsPerPage + 1; j++) {
+				try {
+					erg[i][j][0] = lootboxen.get(i * itemsPerPage + j - 1).type.name();
+					erg[i][j][1] = lootboxen.get(i * itemsPerPage + j - 1).type.description;
+				}catch(Exception x) {
+					x.printStackTrace();
+					break;
+				}
+			}
+		}
+		for (int i = size0 + size1; i < size0 + size1 + size2; i++) {
+			erg[i][0][0] = "Challenges";
+			for (int j = 1; j < itemsPerPage + 1; j++) {
+				try {
+//					erg[i][j][0] = challenges.get(i * itemsPerPage + j - 1).type.name();
+//					erg[i][j][1] = challenges.get(i * itemsPerPage + j - 1).type.description;
+				}catch(Exception x) {
+					x.printStackTrace();
+					break;
+				}
+			}
+		}
+		
 //				new String[size];
 //		
 //		erg[0] = m.getUser().getAsMention() + "'s Inventory: \n";

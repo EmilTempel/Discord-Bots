@@ -59,11 +59,14 @@ public class Shop {
 		this.nextResetInMins = (double) o[2];
 		this.toUser = (User) o[3];
 	}
-<<<<<<< HEAD
 	
-	public Zitat[] getIncludedAvailableZitate(){
-		return null;
-=======
+	public double getNextResetInMins() {
+		return nextResetInMins;
+	}
+	
+	public void cloneTo(User u) {
+		ui.put(u.getId(), "shop", new Shop(g, ui, factor, dailyOffer, nextResetInMins, u));
+	}
 
 	public ArrayList<Zitat> getIncludedAvailableZitate() {
 		ArrayList<Zitat> alleZitate = ui.get("guild", "zitate", ArrayList.class), erg = new ArrayList<Zitat>();
@@ -78,7 +81,6 @@ public class Shop {
 			}
 		}
 		return erg;
->>>>>>> d3d763b713ae465f9752b219942852a165645391
 	}
 
 	public void refresh() {

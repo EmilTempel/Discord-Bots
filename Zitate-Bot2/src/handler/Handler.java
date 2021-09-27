@@ -1,6 +1,5 @@
 package handler;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,19 +31,17 @@ import commands.Command;
 import commands.MessageCommand;
 import commands.ReactionAddCommand;
 import discord.Configuration;
-import discord.Emoji;
 import discord.Game;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
+import net.dv8tion.jda.api.entities.Activity.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -55,6 +52,7 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import potatocoin.Challenge;
 import potatocoin.GnocciGangException;
 import potatocoin.Inventory;
+import potatocoin.Shop;
 import potatocoin.TradeOffer;
 import spiel.Brett;
 import spiel.Figur.Farbe;
@@ -150,10 +148,13 @@ public class Handler implements AudioSendHandler {
 				new ReactionAddCommand("any",
 						(e, s) -> System.out.println(e.getReactionEmote().getAsCodepoints() + " : " + e.getReactionEmote().getName())),
 				new ReactionAddCommand("any", this::cmdScroll),
+				new MessageCommand('<', new String[] { "inventory", "inv", "i" }, new String[][] { new String[0] },
+						this::cmdInventory),
 				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
 					String[][][] content = { { { "Jakob", "stinkt" , "true"}, { "und", "ist blöd", "false" } },
 							{ { "Jakob ist ein", "Hurensohn" ,"false"} } };
 					sendScrollMessage("Test123", "das ist ein cooler Test",content, e.getChannel());
+					
 
 				}) };
 
@@ -945,12 +946,40 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdInventory(GuildMessageReceivedEvent e, String[] cmd_body) {
-		if (!e.getGuild().getMember(e.getAuthor()).getRoles()
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (!m.getRoles()
 				.contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
 			System.out.println("nicht Gnocci-Gang");
 			return;
 		}
+		
+		Inventory inv = userinfo.get(e.getAuthor().getId(), "inventory", Inventory.class);
+		
+		sendScrollMessage("Inventar von " + m.getAsMention(), "" + (int) inv.getCoins(), inv.toFormat(m), e.getChannel());
 
+	}
+	
+	public void cmdShop(GuildMessageReceivedEvent e, String[] cmd_body) {
+		Member m = e.getGuild().getMember(e.getAuthor());
+		if (!m.getRoles()
+				.contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+			System.out.println("nicht Gnocci-Gang");
+			return;
+		}
+		
+		Shop shop = userinfo.get(m.getUser().getId(), "shop", Shop.class);
+		if (shop == null) {
+			shop = userinfo.get("guild", "shop", Shop.class);
+			if (shop == null) {
+				shop = new Shop(g, userinfo, 1, null, 0, null);
+				userinfo.put("guild", "shop", shop);
+				shop.refresh();
+			}
+			shop.cloneTo(m.getUser());
+			shop = userinfo.get(m.getUser().getId(), "shop", Shop.class);
+		}
+		
+		sendScrollMessage("Shop für " + m.getAsMention(), "Nächste Reset in " + (int) shop.getNextResetInMins() + " Minuten", shop.toFormat(), e.getChannel());
 	}
 
 	public void cmdaddTag(GuildMessageReceivedEvent e, String[] cmd_body) {
