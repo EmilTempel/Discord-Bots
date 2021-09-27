@@ -35,21 +35,6 @@ public class TradeOffer {
 		this.coinBalance = coinBalance;
 	}
 	
-//	public TradeOffer(Guild guild, UserInformation ui, String fromString) {
-//		String[] args = fromString.split(";");
-//		this.guild = guild;
-//		this.ui = ui;
-//		from = guild.getJDA().getUserById(args[0]);
-//		to = guild.getJDA().getUserById(args[1]);
-//		coinBalance = Double.parseDouble(args[2]);
-//		args[3] = args[3].substring(1, args[3].length() - 1);
-//		String[] args1 = args[3].split(", ");
-//		angZ = new ArrayList<Zitat>();
-//		for (int i = 0; i < args1.length; i++) {
-//			angZ.add(new Zitat(new Message(args1[0])));
-//		}
-//	}
-	
 	public TradeOffer(Guild guild, UserInformation ui, Object[] o) {
 		this.guild = guild;
 		this.ui = ui;

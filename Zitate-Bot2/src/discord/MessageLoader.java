@@ -2,12 +2,12 @@ package discord;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 public class MessageLoader {
 
@@ -28,22 +28,28 @@ public class MessageLoader {
 	public Message getMessage(String channel, String Id) {
 		return m.get(channel + "/" + Id);
 	}
-	
+
 	public Message getMessage(String path) {
 		return m.get(path);
 	}
 
 	public void load(String c) {
-		TextChannel channel = g.getTextChannelsByName(c, true).size() > 0 ? g.getTextChannelsByName(c, true).get(0) : null;
+		TextChannel channel = g.getTextChannelsByName(c, true).size() > 0 ? g.getTextChannelsByName(c, true).get(0)
+				: null;
 		if (channel != null) {
 			ArrayList<Message> messages = new ArrayList<Message>();
 			String latest = MessageHistory.getHistoryFromBeginning(channel).limit(1).complete().getRetrievedHistory()
 					.get(0).getId();
 			String curr = channel.getLatestMessageId();
+			System.out.println(curr);
 
 			MessageHistory ms = channel.getHistoryAround(curr, 1).complete();
 
-			messages.add(channel.retrieveMessageById(curr).complete());
+			try {
+				messages.add(channel.retrieveMessageById(curr).complete());
+			}catch(ErrorResponseException e) {
+				
+			}
 
 			while (latest.equals(curr) == false) {
 				ms = channel.getHistoryBefore(curr, 100).complete();
@@ -57,7 +63,7 @@ public class MessageLoader {
 				h.add(messages.get(i));
 				m.put(c + "/" + messages.get(i).getId(), messages.get(i));
 			}
-			
+
 			this.messages.addAll(h);
 			System.out.println("successfully loaded");
 		}

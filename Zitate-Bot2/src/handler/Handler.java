@@ -1,5 +1,6 @@
 package handler;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,15 +32,19 @@ import commands.Command;
 import commands.MessageCommand;
 import commands.ReactionAddCommand;
 import discord.Configuration;
+import discord.Emoji;
 import discord.Game;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -57,6 +62,8 @@ import spiel.Spielzug;
 import spiel.Zug;
 
 public class Handler implements AudioSendHandler {
+
+	public final static String arrow_right = "U+27a1U+fe0f", arrow_left = "U+2b05U+fe0f";
 
 	Guild g;
 	UserInformation userinfo;
@@ -92,15 +99,16 @@ public class Handler implements AudioSendHandler {
 		this.userinfo = userinfo;
 		this.zitate = userinfo.getZitatLoader().getZitate();
 		userinfo.put("guild", "zitate", zitate);
-		if(userinfo.get("guild", "ScrollMessages", ArrayList.class) == null)
+		if (userinfo.get("guild", "ScrollMessages", ArrayList.class) == null)
 			userinfo.put("guild", "ScrollMessages", new ArrayList<ScrollMessage>());
-		
+
 		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
 				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
 				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
 					Zitat z = new Zitat(e.getMessage());
-					if (z.isFull())
+					if (z.isFull()) {
 						zitate.add(z);
+					}
 				}),
 				new MessageCommand('<', new String[] { "rate", "r" },
 						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
@@ -140,13 +148,14 @@ public class Handler implements AudioSendHandler {
 						this::cmdassignTag),
 				new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
 				new ReactionAddCommand("any",
-						(e, s) -> System.out.println(e.getReactionEmote() + "\n" + e.getReaction())),
+						(e, s) -> System.out.println(e.getReactionEmote().getAsCodepoints() + " : " + e.getReactionEmote().getName())),
 				new ReactionAddCommand("any", this::cmdScroll),
-				new MessageCommand('<', new String[] {"test"}, new String[][] {}, (e, cmd_body) -> {
-					String[] content = {e.getMessage().getContentRaw(), "Jakob", "du", "Hurensohn", "!"};
-					ScrollMessage sm = new ScrollMessage(g, e.getChannel().getName(), e.getMessageId(), content, 0);
-					userinfo.get("guild", "ScrollMessages", ArrayList.class).add(sm);
-				})};
+				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
+					String[][][] content = { { { "Jakob", "stinkt" , "true"}, { "und", "ist blöd", "false" } },
+							{ { "Jakob ist ein", "Hurensohn" ,"false"} } };
+					sendScrollMessage("Test123", "das ist ein cooler Test",content, e.getChannel());
+
+				}) };
 
 		config = new Configuration(userinfo, commands);
 
@@ -160,8 +169,46 @@ public class Handler implements AudioSendHandler {
 		return commands;
 	}
 
-	public void sendMessage(String msg, TextChannel channel) {
+	public static void sendMessage(String msg, TextChannel channel) {
 		channel.sendMessage(msg).queue();
+	}
+	
+	public static void editMessage(Message m, String content) {
+		m.editMessage(content).queue();
+	}
+	
+	public static void editMessage(Message m, MessageEmbed content) {
+		m.editMessage(content).queue();
+	}
+
+	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
+		ScrollMessage sm = new ScrollMessage(g, null, null, title, description, content, 0);
+		
+		channel.sendMessage(sm.getContent(0)).queue(m -> {
+			sm.setMessage(m);
+			ArrayList<ScrollMessage> sms = userinfo.get("guild", "ScrollMessages", ArrayList.class);
+			sms.add(sm);
+			if(sms.size() > 100)
+				sms.remove(0);
+		});
+	}
+	
+	public static void addReaction(Message m, Emoji emoji) {
+		if (m != null) {
+			m.addReaction(emoji.code).queue();
+		}
+	}
+	
+	public static void removeReaction(Message m, Emoji emoji, User user) {
+		if (m != null) {
+			m.removeReaction(emoji.code, user).queue();
+		}
+	}
+	
+	public static void removeReaction(Message m, String emoji, User user) {
+		if (m != null) {
+			m.removeReaction(emoji, user).queue();
+		}
 	}
 
 	public ArrayList<Zitat> getZitate() {
@@ -169,6 +216,7 @@ public class Handler implements AudioSendHandler {
 		for (Zitat z : zitate) {
 			temp.add(z);
 		}
+
 		return temp;
 	}
 
@@ -332,6 +380,8 @@ public class Handler implements AudioSendHandler {
 					erg = "Voted for: " + temp[r].getAll();
 
 					userinfo.put(id, "rating", null);
+					Inventory i = userinfo.get(id, "Inventory", Inventory.class);
+					i.addCoins(1);
 				} else {
 					erg = "Zwischen 1 und 2 du Evolutionsbremse";
 				}
@@ -869,7 +919,7 @@ public class Handler implements AudioSendHandler {
 				if (userinfo.get(m.getId(), "inventory", Inventory.class).getCoins() >= -t.getCoinBalance()) {
 					t.execute();
 				} else {
-					msg.removeReaction("👍", m).complete();
+					msg.removeReaction(Emoji.thumbsup.code, m).complete();
 //					userinfo.get("guild", "trades", HashMap.class).remove(msg);
 				}
 			}
@@ -985,21 +1035,19 @@ public class Handler implements AudioSendHandler {
 							e.getChannel());
 					z = null;
 				}
+			
 		}
 		userinfo.put(Id, "assign", z);
 	}
-	
+
 	public void cmdScroll(GuildMessageReactionAddEvent e, String[] cmd_body) {
-		for(ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
-			if(sm.matches(e.getChannel().getName(), e.getMessageId())) {
+		for (ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
+			if (sm.matches(e.getChannel().getName(), e.getMessageId())) {
 				sm.setMessage();
-				System.out.println(e.getReactionEmote().getName());
-				if(e.getReactionEmote().getName().equals("arrow_right")) {
-					sm.flip(1);
-				}else if(e.getReactionEmote().getName().equals("arrow_right")){
-					sm.flip(-1);
-				}
-				
+				Emoji emoji = Emoji.fromUnicode(e.getReactionEmote().getAsCodepoints());
+				removeReaction(sm.getMessage(), emoji, e.getUser());
+				sm.fliyp(emoji);
+				userinfo.save();
 				break;
 			}
 		}

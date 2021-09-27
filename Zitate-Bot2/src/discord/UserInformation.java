@@ -41,11 +41,10 @@ public class UserInformation {
 				new Converter("Integer", Integer.class, (v, c) -> Integer.parseInt(v)),
 				new Converter("Double", Double.class, (v, c) -> Double.parseDouble(v)),
 				new Converter("String", String.class, (v, c) -> v),
+				new Converter("Emoji", Emoji.class, (v,c) -> Emoji.valueOf(v)),
 				new Converter("Zitat", Zitat.class, (v, c) -> z_loader.getZitat(StringToArray(v))),
 				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(StringToArray(v))),
-
 				new Converter("TradeOffer", TradeOffer.class, (v, c) -> new TradeOffer(g, this, StringToArray(v))),
-
 				new Converter("ScrollMessage", ScrollMessage.class, (v,c) -> new ScrollMessage(g, StringToArray(v))),
 
 				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {

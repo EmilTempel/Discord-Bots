@@ -33,7 +33,7 @@ public class Shop {
 	}
 	
 	public Zitat[] getIncludedAvailableZitate(){
-		return;
+		return null;
 	}
 	
 	public void refresh() {
