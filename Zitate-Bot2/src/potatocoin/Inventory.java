@@ -131,17 +131,20 @@ public class Inventory {
 		if (challenges.size() % itemsPerPage != 0) {
 			size2++;
 		}
-		String[][][] erg = new String[size0 + size1 + size2][][];
+		String[][][] erg = new String[size0 + size1 + size2][itemsPerPage][3];
 		
 		for (int i = 0; i < size0; i++) {
 			erg[i][0][0] = "Zitate";
 			for (int j = 1; j < itemsPerPage + 1; j++) {
 				try {
-					erg[i][j][1] = zitate.get(i * itemsPerPage + j - 1).getRarity() + "enes Zitat";
+					erg[i][j][0] = zitate.get(i * itemsPerPage + j - 1).getRarity() + "enes Zitat";
 					erg[i][j][1] = zitate.get(i * itemsPerPage + j - 1).getAll();
+					erg[i][j][2] = "false";
 				}catch(Exception x) {
 					x.printStackTrace();
-					break;
+					erg[i][j][0] = "";
+					erg[i][j][1] = "";
+					erg[i][j][2] = "false";
 				}
 			}
 		}
@@ -151,22 +154,28 @@ public class Inventory {
 				try {
 					erg[i][j][0] = lootboxen.get(i * itemsPerPage + j - 1).type.name();
 					erg[i][j][1] = lootboxen.get(i * itemsPerPage + j - 1).type.description;
+					erg[i][j][2] = "false";
 				}catch(Exception x) {
 					x.printStackTrace();
-					break;
+					erg[i][j][0] = "";
+					erg[i][j][1] = "";
+					erg[i][j][2] = "false";
 				}
 			}
 		}
 		for (int i = size0 + size1; i < size0 + size1 + size2; i++) {
 			erg[i][0][0] = "Challenges";
 			for (int j = 1; j < itemsPerPage + 1; j++) {
-				try {
+//				try {
 //					erg[i][j][0] = challenges.get(i * itemsPerPage + j - 1).type.name();
 //					erg[i][j][1] = challenges.get(i * itemsPerPage + j - 1).type.description;
-				}catch(Exception x) {
-					x.printStackTrace();
-					break;
-				}
+//					erg[i][j][2] = "false";
+//				}catch(Exception x) {
+//					x.printStackTrace();
+					erg[i][j][0] = "";
+					erg[i][j][1] = "";
+					erg[i][j][2] = "false";
+//				}
 			}
 		}
 		

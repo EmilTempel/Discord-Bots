@@ -104,8 +104,9 @@ public class Shop {
 
 	public String[][][] toFormat() {
 		// Format: [0][0][0]: Titel, [0][0][1]: Description
-		// erste Klammer: Seite (beginnt mit 1), [Seite][0][0]: Name der Seite
-		// zweite Klamme: Abschnitt auf der Seite (beginnt mit 1)
+		// UPDATE: Nein!
+		// erste Klammer: Seite (beginnt mit 1) (NEIN!), [Seite][0][0]: Name der Seite
+		// zweite Klamme: Abschnitt auf der Seite (beginnt mit 1)(NEIN!)
 		// dritte Klammer: Headline([][][0]) oder Body([][][1])
 
 		String[][][] erg = new String[][][] { new String[dailyOffer.size() + 1][3],
