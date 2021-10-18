@@ -24,7 +24,7 @@ public class ZitatLoader {
 		z = new HashMap<String, Zitat>();
 		load();
 		assignRarity();
-		numerate();
+//		numerate();
 	}
 
 	public void load() {
@@ -98,8 +98,11 @@ public class ZitatLoader {
 		for (Message m : loader.messages) {
 			if (getZitat(m.getChannel().getName(), m.getId()) != null) {
 				int[] digits = IDealize(c,ID_len);
+				System.out.println(Arrays.toString(digits));
 				for (int i = 0; i < digits.length; i++) {
+					System.out.println(Emoji.values()[digits[i]]);
 					Handler.addReaction(m, Emoji.values()[digits[i]]);
+					
 				}
 				c++;
 			}

@@ -13,9 +13,7 @@ import javax.imageio.ImageIO;
 
 import discord.UserInformation;
 import discord.Zitat;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 public class Inventory {
 
@@ -36,7 +34,7 @@ public class Inventory {
 	public Inventory(Object[] o) {
 		this.coins = (double) o[0];
 		this.zitate = (ArrayList<Zitat>) o[1];
-		this.lootboxen = (Lootbox) o[2];
+		this.lootboxen = (ArrayList<LootBox>) o[2];
 		this.challenges = (HashMap<Challenge, Boolean>) o[3];
 	}
 
