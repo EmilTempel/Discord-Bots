@@ -5,10 +5,10 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 
 public class JoinCommand extends Command {
-	Executable exe;
+	Executable<GuildVoiceJoinEvent> exe;
 	Configuration c;
 
-	public JoinCommand(Executable exe, Configuration c) {
+	public JoinCommand(Executable<GuildVoiceJoinEvent> exe, Configuration c) {
 		this.exe = exe;
 	}
 
@@ -17,11 +17,7 @@ public class JoinCommand extends Command {
 			exe.run((GuildVoiceJoinEvent) e, cmd_body);
 		}
 	}
-
-	public interface Executable {
-		public abstract void run(GuildVoiceJoinEvent e, String... cmd_body);
-	}
-
+	
 	public String getName() {
 		return "onJoin";
 	}

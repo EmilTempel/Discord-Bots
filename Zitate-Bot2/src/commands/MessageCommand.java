@@ -9,10 +9,10 @@ public class MessageCommand extends Command {
 	char prefix;
 	String[] KeyWords;
 	String[][] body_regex;
-	Executable exe;
+	Executable<GuildMessageReceivedEvent> exe;
 	Configuration c;
 
-	public MessageCommand(char prefix, String[] KeyWords, String[][] body_regex, Executable exe) {
+	public MessageCommand(char prefix, String[] KeyWords, String[][] body_regex, Executable<GuildMessageReceivedEvent> exe) {
 		this.prefix = prefix;
 		this.KeyWords = KeyWords;
 		this.body_regex = body_regex;
@@ -78,10 +78,6 @@ public class MessageCommand extends Command {
 			body[i] = cmd[i + 1] != null ? cmd[i + 1] : "";
 		}
 		return body;
-	}
-
-	public interface Executable {
-		public abstract void run(GuildMessageReceivedEvent e, String... cmd_body);
 	}
 
 	public String getName() {
