@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import potatocoin.Inventory;
-import potatocoin.Shop;
 import potatocoin.TradeOffer;
 
 public class UserInformation {
@@ -42,6 +42,7 @@ public class UserInformation {
 				new Converter("Integer", Integer.class, (v, c) -> Integer.parseInt(v)),
 				new Converter("Double", Double.class, (v, c) -> Double.parseDouble(v)),
 				new Converter("String", String.class, (v, c) -> v),
+				new Converter("Member", Member.class, (v, c) -> g.getMemberById(v.replaceAll("[^\\d]", "").substring(0,19))),
 				new Converter("Emoji", Emoji.class, (v,c) -> Emoji.valueOf(v)),
 				new Converter("Zitat", Zitat.class, (v, c) -> z_loader.getZitat(StringToArray(v))),
 				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(StringToArray(v))),

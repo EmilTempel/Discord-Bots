@@ -30,12 +30,14 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 import commands.Command;
 import commands.MessageCommand;
 import commands.ReactionAddCommand;
+import commands.TimedCommand;
 import discord.Configuration;
 import discord.Emoji;
 import discord.Game;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
+import math.Functions.Executable;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -111,8 +113,8 @@ public class Handler implements AudioSendHandler {
 				}),
 				new MessageCommand('<', new String[] { "rate", "r" },
 						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
-				new MessageCommand('<', new String[] { "loadScores"},
-						new String[][] { new String[] {}}, this::cmdLoadScores),
+				new MessageCommand('<', new String[] { "loadScores" }, new String[][] { new String[] {} },
+						this::cmdLoadScores),
 				new MessageCommand('<', new String[] { "top" },
 						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
 				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
@@ -155,10 +157,9 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "inventory", "inv", "i" }, new String[][] { new String[0] },
 						this::cmdInventory),
 				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
-					String[][][] content = { { { "Jakob", "stinkt", "true" }, { "und", "ist blöd", "false" } },
-							{ { "Jakob ist ein", "Hurensohn", "false" } } };
-					sendScrollMessage("Test123", "das ist ein cooler Test", content, e.getChannel());
-
+					System.out.println(e.getMember());
+				}), new TimedCommand(/*name =*/"save UserInfo", /*period =*/ 1000 * 60, (e, cmd_body) -> {
+					userinfo.save();
 				}) };
 
 		config = new Configuration(userinfo, commands);
@@ -195,6 +196,13 @@ public class Handler implements AudioSendHandler {
 			if (sms.size() > 100)
 				sms.remove(0);
 		});
+	}
+	
+	public void addAcceptButton(Message m, Executable accept, Executable decline) {
+		addReaction(m, Emoji.accept);
+		addReaction(m, Emoji.x);
+		
+		
 	}
 
 	public static void addReaction(Message m, Emoji emoji) {
@@ -265,7 +273,6 @@ public class Handler implements AudioSendHandler {
 		}
 
 	}
-	
 
 	public void loadScores(HashMap<String, Integer[]> scores, String path) {
 		BufferedReader reader;
@@ -313,15 +320,15 @@ public class Handler implements AudioSendHandler {
 		}
 
 	}
-	
+
 	public void cmdLoadScores(GuildMessageReceivedEvent e, String[] cmd_body) {
 		HashMap<String, Integer[]> scores = new HashMap<String, Integer[]>();
 		loadScores(scores, "zitat_scores");
 		System.out.println(scores);
 		System.out.println("true");
-		for(Entry<String, Integer[]> entry : scores.entrySet()) {
-			for(Zitat z : zitate) {
-				if(z.getID().equals(entry.getKey())) {
+		for (Entry<String, Integer[]> entry : scores.entrySet()) {
+			for (Zitat z : zitate) {
+				if (z.getID().equals(entry.getKey())) {
 					z.setScore(entry.getValue());
 				}
 			}
@@ -400,8 +407,10 @@ public class Handler implements AudioSendHandler {
 
 					userinfo.put(id, "rating", null);
 					Inventory i = userinfo.get(id, "Inventory", Inventory.class);
-					if (i != null)
+					if (i != null) {
 						i.addCoins(1);
+						System.out.println(i.getCoins());
+					}
 				} else {
 					erg = "Zwischen 1 und 2 du Evolutionsbremse";
 				}
@@ -837,10 +846,11 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
+		String id = e.getAuthor().getId();
 		if (acceptParticipation.contains(m)) {
 			acceptParticipation.remove(m);
-			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
-				userinfo.put(m.getId(), "inventory", new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(),
+			if (userinfo.get(id, "inventory", Inventory.class) == null) {
+				userinfo.put(id, "inventory", new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(),
 						new HashMap<Challenge, Boolean>()));
 			}
 			giveRole(e.getGuild(), m, "Gnocci-Gang");

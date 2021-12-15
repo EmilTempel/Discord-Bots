@@ -3,6 +3,8 @@ package discord;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import commands.Command;
 import commands.JoinCommand;
@@ -27,11 +29,14 @@ public class Listener extends ListenerAdapter {
 	ArrayList<Command> commands;
 	HashMap<Class<? extends Command>, ArrayList<Command>> map;
 
+	Timer timer;
+
 	public Listener(Guild g, Command... commands) {
 		this.g = g;
 		this.commands = new ArrayList<Command>();
 		this.map = new HashMap<Class<? extends Command>, ArrayList<Command>>();
 		addCommands(commands);
+		
 	}
 
 	public void addCommands(Command... commands) {
@@ -47,6 +52,8 @@ public class Listener extends ListenerAdapter {
 
 			map.get(c).add(commands[i]);
 		}
+		
+		startTimedCommands();
 	}
 
 	public ArrayList<Command> getCommands(Class<? extends Command> c) {
@@ -55,10 +62,10 @@ public class Listener extends ListenerAdapter {
 		}
 		return map.get(c);
 	}
-	
-	public <E extends Command> ArrayList<E> getCastCommands(Class<E> c){
+
+	public <E extends Command> ArrayList<E> getCastCommands(Class<E> c) {
 		ArrayList<E> list = new ArrayList<E>();
-		for(Command command : getCommands(c)) {
+		for (Command command : getCommands(c)) {
 			list.add(c.cast(command));
 		}
 		return list;
@@ -82,12 +89,10 @@ public class Listener extends ListenerAdapter {
 			String msg = e.getMessage().getContentRaw();
 
 			if (msg.length() > 0 && !e.getAuthor().isBot()) {
-				System.out.println(msg);
 				String[] cmd = msg.split(" ");
 				for (MessageCommand c : getCastCommands(MessageCommand.class)) {
 					if (c.matches(cmd)) {
 						c.execute(e, MessageCommand.Command_Body(cmd));
-						System.out.println(Arrays.toString(cmd));
 					}
 				}
 			}
@@ -128,14 +133,33 @@ public class Listener extends ListenerAdapter {
 		}
 	}
 
-//	public void startTimedCommands() {
-//		ArrayList<TimedCommand> timedcommands = new ArrayList<TimedCommand>();
-//		for(int i)
-//		long[] periods = new long[timedcommands.size()];
-//		
-//			long period = Functions.ggT(periods);
-//			for (Command command : ) {
-//				command.execute();
-//			}
-//	}
+	public void startTimedCommands() {
+		ArrayList<TimedCommand> tcommands = getCastCommands(TimedCommand.class);
+		if (tcommands.size() > 0) {
+			System.out.println("start");
+			long[] periods = new long[tcommands.size()];
+			for (int i = 0; i < tcommands.size(); i++) {
+				periods[i] = tcommands.get(i).getPeriod();
+			}
+			long period = Functions.ggT(periods);
+			for (TimedCommand c : tcommands) {
+				c.setMaxCounter(c.getPeriod() / period);
+			}
+			timer = new Timer();
+			TimerTask task = new TimerTask() {
+
+				public void run() {
+					for (TimedCommand c : tcommands) {
+						if (c.getCounter() == 0) {
+							c.execute(null, new String[0]);
+						}
+						c.updateCounter();
+					}
+				}
+
+			};
+
+			timer.scheduleAtFixedRate(task, 0, period);
+		}
+	}
 }

@@ -36,34 +36,6 @@ public class ZitatMaster extends Bot {
 				f.mkdir();
 
 			UserInformation ui = new UserInformation(g);
-			
-//			System.out.println(ui.get("guild", "zitate", ArrayList.class).size());
-//			ui.put("general", "Int", 1);
-//
-//			ui.put("general", "Array", new Integer[][] { new Integer[] { 1, 2 }, new Integer[] { 4, 5 } });
-//			ArrayList<ArrayList<Integer>> list = new ArrayList<ArrayList<Integer>>();
-//			for (int i = 0; i < 10; i++) {
-//				ArrayList<Integer> l = new ArrayList<Integer>();
-//				l.add(1+1);
-//				l.add(69+1);
-//				list.add(l);
-//			}
-//			ui.put("general", "ArrayList", list);
-//			HashMap<Integer, String> map = new HashMap<Integer, String>();
-//			map.put(1, "helol");
-//			map.put(2, "helal");
-//			ui.put("general", "HashMap", map);
-//
-//			System.out.println("Array: " + Arrays.deepToString(ui.get("general", "Array", Object[].class)));
-//			System.out.println(ui.get("general", "Array", Object[].class).getClass());
-//			System.out.println("ArrayList: " + ui.get("general", "ArrayList", ArrayList.class));
-//			System.out.println(ui.get("general", "ArrayList", ArrayList.class));
-//			System.out.println("HashMap: " + ui.get("general", "HashMap", HashMap.class));
-//			System.out.println(ui.get("general", "HashMap", HashMap.class).getClass());
-//			System.out.println("Int: " + ui.get("general", "Int", Integer.class));
-//			
-//
-//			ui.save();
 
 			Handler handler = new Handler(g, ui);
 

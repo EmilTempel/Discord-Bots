@@ -19,11 +19,11 @@ public class ScrollMessage {
 	String[][][] content_raw;
 	MessageEmbed[] content;
 	int page, item;
-	Emoji left, right, up, down, accept;
+	Emoji left, right, up, down;
 	Message m;
 
 	public ScrollMessage(Guild g, String channel, String MessageId, String title, String description,
-			String[][][] content_raw, int page, Emoji left, Emoji right, Emoji up, Emoji down, Emoji accept) {
+			String[][][] content_raw, int page, Emoji left, Emoji right, Emoji up, Emoji down) {
 		this.g = g;
 		this.channel = channel;
 		this.MessageId = MessageId;
@@ -36,19 +36,18 @@ public class ScrollMessage {
 		this.right = right;
 		this.up = up;
 		this.down = down;
-		this.accept = accept;
 
 	}
 
 	public ScrollMessage(Guild g, String channel, String MessageId, String title, String description,
 			String[][][] content_raw, int page) {
 		this(g, channel, MessageId, title, description, content_raw, page, Emoji.arrow_left, Emoji.arrow_right,
-				Emoji.arrow_up, Emoji.arrow_down, Emoji.white_check_mark);
+				Emoji.arrow_up, Emoji.arrow_down);
 	}
 
 	public ScrollMessage(Guild g, Object[] o) {
 		this(g, (String) o[0], (String) o[1], (String) o[2], (String) o[3], (String[][][]) o[4], (int) o[5],
-				(Emoji) o[6], (Emoji) o[7], (Emoji) o[8], (Emoji) o[9], (Emoji) o[10]);
+				(Emoji) o[6], (Emoji) o[7], (Emoji) o[8], (Emoji) o[9]);
 		setMessage();
 	}
 
@@ -126,7 +125,7 @@ public class ScrollMessage {
 				r_emojis.add(Emoji.fromUnicode(r.getReactionEmote().getAsCodepoints()));
 			}
 
-			Emoji[] emojis = { left, right, up, down, accept };
+			Emoji[] emojis = { left, right, up, down};
 			for (int i = 0; i < emojis.length; i++) {
 				if (!r_emojis.contains(emojis[i])) {
 					Handler.addReaction(m, emojis[i]);
@@ -147,9 +146,6 @@ public class ScrollMessage {
 		}
 		if (emoji.equals(down)) {
 			flyp(1);
-		}
-		if (emoji.equals(accept)) {
-
 		}
 	}
 
@@ -178,6 +174,6 @@ public class ScrollMessage {
 
 	public String toString() {
 		return UserInformation.ArrayToString(channel, MessageId, title, description, content_raw, page, left, right, up,
-				down, accept);
+				down);
 	}
 }

@@ -22,9 +22,6 @@ public class MessageCommand extends Command {
 	public void execute(Event e, String... cmd_body) {
 		if (active) {
 			exe.run((GuildMessageReceivedEvent) e, cmd_body);
-			System.out.println("run");
-		} else {
-			System.out.println("inactive");
 		}
 	}
 
