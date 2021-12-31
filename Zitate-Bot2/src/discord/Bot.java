@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.security.auth.login.LoginException;
+import javax.swing.JFrame;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -44,5 +45,9 @@ public class Bot {
 		}
 		ZitatMaster t_d = new ZitatMaster(token);
 		
+		JFrame frame = new JFrame("Zitate-Bot");
+		frame.setSize(100,100);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
 	}
 }

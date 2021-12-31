@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat.Type;
@@ -158,9 +161,9 @@ public class Handler implements AudioSendHandler {
 						this::cmdInventory),
 				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
 					System.out.println(e.getMember());
-				}), new TimedCommand(/*name =*/"save UserInfo", /*period =*/ 1000 * 60, (e, cmd_body) -> {
+				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
 					userinfo.save();
-				}) };
+				})/*, new TimedCommand( name = "updateMeinkraft",  period = 1000 * 60, this::updateMeinkraft)*/ };
 
 		config = new Configuration(userinfo, commands);
 
@@ -176,6 +179,10 @@ public class Handler implements AudioSendHandler {
 
 	public static void sendMessage(String msg, TextChannel channel) {
 		channel.sendMessage(msg).queue();
+	}
+	
+	public static void sendMessage(String msg, TextChannel channel, Consumer<? super Message> consumer) {
+		channel.sendMessage(msg).queue(consumer);
 	}
 
 	public static void editMessage(Message m, String content) {
@@ -197,12 +204,11 @@ public class Handler implements AudioSendHandler {
 				sms.remove(0);
 		});
 	}
-	
+
 	public void addAcceptButton(Message m, Executable accept, Executable decline) {
 		addReaction(m, Emoji.accept);
 		addReaction(m, Emoji.x);
-		
-		
+
 	}
 
 	public static void addReaction(Message m, Emoji emoji) {
@@ -1108,5 +1114,32 @@ public class Handler implements AudioSendHandler {
 				break;
 			}
 		}
+	}
+
+	public void updateMeinkraft(Integer i, String[] cmd_body) {
+		try {
+			URL whatismyip = new URL("http://checkip.amazonaws.com");
+			BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+			String ip = in.readLine();
+			String old_ip = userinfo.get("meinkraft", "IP", String.class);
+			
+			if(!ip.equals(old_ip)) {
+				String m = null;
+				TextChannel meinkraft = g.getTextChannelsByName("meinkraft", true).get(0);
+				if((m = userinfo.get("meinkraft", "Message", String.class)) != null){
+					meinkraft.deleteMessageById(m).queue();
+				};
+				
+				sendMessage(g.getRolesByName("Minecraft", true).get(0).getAsMention() + ": Die neue IP ist " + ip, meinkraft, message -> {
+					userinfo.put("meinkraft","Message", message.getId());
+				});
+				userinfo.put("meinkraft", "IP", ip);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }
