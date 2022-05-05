@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.User;
 
 public class ScrollMessage {
 
+	Handler handler;
 	Guild g;
 	String channel, MessageId, title, description;
 	String[][][] content_raw;
@@ -22,8 +23,9 @@ public class ScrollMessage {
 	Emoji left, right, up, down;
 	Message m;
 
-	public ScrollMessage(Guild g, String channel, String MessageId, String title, String description,
+	public ScrollMessage(Handler handler, Guild g, String channel, String MessageId, String title, String description,
 			String[][][] content_raw, int page, Emoji left, Emoji right, Emoji up, Emoji down) {
+		this.handler = handler;
 		this.g = g;
 		this.channel = channel;
 		this.MessageId = MessageId;
@@ -32,27 +34,23 @@ public class ScrollMessage {
 		this.description = description;
 		this.content = from3DStringArray(content_raw);
 		this.page = page;
+		
 		this.left = left;
 		this.right = right;
 		this.up = up;
 		this.down = down;
-
+		
+		
 	}
 
-	public ScrollMessage(Guild g, String channel, String MessageId, String title, String description,
+	public ScrollMessage(Handler handler, Guild g, String channel, String MessageId, String title, String description,
 			String[][][] content_raw, int page) {
-		this(g, channel, MessageId, title, description, content_raw, page, Emoji.arrow_left, Emoji.arrow_right,
+		this(handler, g, channel, MessageId, title, description, content_raw, page, Emoji.arrow_left, Emoji.arrow_right,
 				Emoji.arrow_up, Emoji.arrow_down);
 	}
 
-	public ScrollMessage(Guild g, Object[] o) {
-		this(g, (String) o[0], (String) o[1], (String) o[2], (String) o[3], (String[][][]) o[4], (int) o[5],
-				(Emoji) o[6], (Emoji) o[7], (Emoji) o[8], (Emoji) o[9]);
-		setMessage();
-	}
-
-	public ScrollMessage(Guild g, Message m, String title, String description, String[][][] content_raw, int page) {
-		this(g, m.getChannel().getName(), m.getId(),title, description, content_raw, page);
+	public ScrollMessage(Handler handler, Guild g, Message m, String title, String description, String[][][] content_raw, int page) {
+		this(handler, g, m.getChannel().getName(), m.getId(),title, description, content_raw, page);
 		setMessage(m);
 	}
 
@@ -101,12 +99,18 @@ public class ScrollMessage {
 		this.m = m;
 		this.channel = m.getChannel().getName();
 		this.MessageId = m.getId();
-		addReactions();
+		addActionMessage(m);
 	}
-
-	public void setMessage() {
-		setMessage(g.getTextChannelsByName(channel, false).get(0).retrieveMessageById(MessageId).complete());
-
+	
+	public void addActionMessage(Message message) {
+		ActionMessage am = new ActionMessage(message, true);
+		am.addAction(left, (e,m) -> {flip(-1);
+			System.out.println(e);
+			});
+		am.addAction(right, (e,m) -> flip(1));
+		am.addAction(up, (e,m) -> flyp(-1));
+		am.addAction(down, (e,m) -> flyp(1));
+		handler.addActionMessage(am);
 	}
 
 	public Message getMessage() {
@@ -115,38 +119,6 @@ public class ScrollMessage {
 	
 	public MessageEmbed getContent(int i) {
 		return content[i];
-	}
-
-	public void addReactions() {
-		if (m != null) {
-			List<MessageReaction> reactions = m.getReactions();
-			List<Emoji> r_emojis = new ArrayList<Emoji>();
-			for (MessageReaction r : reactions) {
-				r_emojis.add(Emoji.fromUnicode(r.getReactionEmote().getAsCodepoints()));
-			}
-
-			Emoji[] emojis = { left, right, up, down};
-			for (int i = 0; i < emojis.length; i++) {
-				if (!r_emojis.contains(emojis[i])) {
-					Handler.addReaction(m, emojis[i]);
-				}
-			}
-		}
-	}
-
-	public void fliyp(Emoji emoji) {
-		if (emoji.equals(left)) {
-			flip(-1);
-		}
-		if (emoji.equals(right)) {
-			flip(1);
-		}
-		if (emoji.equals(up)) {
-			flyp(-1);
-		}
-		if (emoji.equals(down)) {
-			flyp(1);
-		}
 	}
 
 	public void flipTo(int page) {

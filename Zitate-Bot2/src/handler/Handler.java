@@ -34,13 +34,13 @@ import commands.Command;
 import commands.MessageCommand;
 import commands.ReactionAddCommand;
 import commands.TimedCommand;
+import discord.ActionMessage;
 import discord.Configuration;
 import discord.Emoji;
 import discord.Game;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
-import math.Functions.Executable;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -66,8 +66,6 @@ import spiel.Spielzug;
 import spiel.Zug;
 
 public class Handler implements AudioSendHandler {
-
-	public final static String arrow_right = "U+27a1U+fe0f", arrow_left = "U+2b05U+fe0f";
 
 	Guild g;
 	UserInformation userinfo;
@@ -103,8 +101,16 @@ public class Handler implements AudioSendHandler {
 		this.userinfo = userinfo;
 		this.zitate = userinfo.getZitatLoader().getZitate();
 		userinfo.put("guild", "zitate", zitate);
-		if (userinfo.get("guild", "ScrollMessages", ArrayList.class) == null)
-			userinfo.put("guild", "ScrollMessages", new ArrayList<ScrollMessage>());
+
+		if (userinfo.get("guild", "ActionMessages", ArrayList.class) != null) {
+			for (ActionMessage a : (ArrayList<ActionMessage>) userinfo.get("guild", "ActionMessages",
+					ArrayList.class)) {
+
+			}
+		}
+
+		userinfo.put("guild", "ActionMessages", new ArrayList<ActionMessage>());
+		userinfo.put("guild", "ActionEmojis", new ArrayList<Emoji>());
 
 		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
 				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
@@ -113,9 +119,9 @@ public class Handler implements AudioSendHandler {
 					if (z.isFull()) {
 						zitate.add(z);
 					}
-				}),
-				new MessageCommand('<', new String[] { "rate", "r" },
-						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
+				}), // <rate || <rate 1
+				new MessageCommand('<', new String[] { "rate", "r" }, new String[][] { new String[] {} },
+						this::cmdRate),
 				new MessageCommand('<', new String[] { "loadScores" }, new String[][] { new String[] {} },
 						this::cmdLoadScores),
 				new MessageCommand('<', new String[] { "top" },
@@ -152,18 +158,29 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
 						this::cmdassignTag),
-				new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
-				new ReactionAddCommand("any",
-						(e, s) -> System.out.println(
-								e.getReactionEmote().getAsCodepoints() + " : " + e.getReactionEmote().getName())),
-				new ReactionAddCommand("any", this::cmdScroll),
 				new MessageCommand('<', new String[] { "inventory", "inv", "i" }, new String[][] { new String[0] },
 						this::cmdInventory),
 				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
-					System.out.println(e.getMember());
+					sendScrollMessage("Jakob der Hurensohn", "der Peniskopf",
+							new String[][][] {
+									new String[][] { new String[] { "hallo", "test", "true" },
+											new String[] { "penis", "kopf", "true" },
+											new String[] { "jojo", "pimmel", "true" } },
+									new String[][] { new String[] { "emil", "cool", "false" },
+											new String[] { "jakob", "stinkt", "true" },
+											new String[] { "jojo", "pillenschlucker", "true" } },
+									new String[][] { new String[] { "java", "good", "false" },
+											new String[] { "python", "stinkt", "false" },
+											new String[] { "jan der Rapper", "rappt", "false" } } },
+							e.getChannel());
 				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
 					userinfo.save();
-				})/*, new TimedCommand( name = "updateMeinkraft",  period = 1000 * 60, this::updateMeinkraft)*/ };
+				}), new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
+						this::cmdResolveActionMessages)
+				/*
+				 * , new TimedCommand( name = "updateMeinkraft", period = 1000 * 60,
+				 * this::updateMeinkraft)
+				 */ };
 
 		config = new Configuration(userinfo, commands);
 
@@ -180,7 +197,7 @@ public class Handler implements AudioSendHandler {
 	public static void sendMessage(String msg, TextChannel channel) {
 		channel.sendMessage(msg).queue();
 	}
-	
+
 	public static void sendMessage(String msg, TextChannel channel, Consumer<? super Message> consumer) {
 		channel.sendMessage(msg).queue(consumer);
 	}
@@ -193,22 +210,22 @@ public class Handler implements AudioSendHandler {
 		m.editMessage(content).queue();
 	}
 
+	public static void deleteMessage(String messageId, TextChannel channel) {
+		channel.deleteMessageById(messageId).queue();
+	}
+
 	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
-		ScrollMessage sm = new ScrollMessage(g, null, null, title, description, content, 0);
+		ScrollMessage sm = new ScrollMessage(this, g, null, null, title, description, content, 0);
 
 		channel.sendMessage(sm.getContent(0)).queue(m -> {
 			sm.setMessage(m);
-			ArrayList<ScrollMessage> sms = userinfo.get("guild", "ScrollMessages", ArrayList.class);
-			sms.add(sm);
-			if (sms.size() > 100)
-				sms.remove(0);
 		});
 	}
 
-	public void addAcceptButton(Message m, Executable accept, Executable decline) {
-		addReaction(m, Emoji.accept);
-		addReaction(m, Emoji.x);
-
+	public void addActionMessage(ActionMessage a) {
+		userinfo.get("guild", "ActionMessages", ArrayList.class).add(a);
+		userinfo.get("guild", "ActionEmojis", ArrayList.class).addAll(a.getEmojis());
+		a.addReactions();
 	}
 
 	public static void addReaction(Message m, Emoji emoji) {
@@ -251,7 +268,7 @@ public class Handler implements AudioSendHandler {
 	public int lowestZitat() {
 		int min = (int) Double.POSITIVE_INFINITY;
 		for (Zitat z : zitate) {
-			int n = z.getScore()[2];
+			int n = z.getScore()[0];
 
 			if (n < min) {
 				min = n;
@@ -273,7 +290,8 @@ public class Handler implements AudioSendHandler {
 		}
 
 		if (temp.size() == 0) {
-			return get_lOR_Zitat(++n);
+			System.out.println(n);
+			return get_lOR_Zitat(n + 1);
 		} else {
 			return temp.get((int) (Math.random() * temp.size()));
 		}
@@ -361,73 +379,72 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
 //		loadScores();
-		String erg = "";
+		Zitat[] temp = new Zitat[2];
+		String erg = getNewRateMessage(e, temp);
+
+		sendMessage(erg, e.getChannel(), m -> {
+			ActionMessage am = new ActionMessage(m, true, e.getAuthor());
+			am.addAction(Emoji.one, (emoji, msg) -> {
+				rate(0, e.getAuthor().getId(), temp);
+				editMessage(m, getNewRateMessage(e, temp));
+			});
+
+			am.addAction(Emoji.two, (emoji, msg) -> {
+				rate(1, e.getAuthor().getId(), temp);
+				editMessage(m, getNewRateMessage(e, temp));
+			});
+
+			am.addAction(Emoji.a, (emoji, msg) -> {
+				sendMessage("richtige Zahlen, du Hurensohn!", e.getChannel());
+			});
+
+			am.addAction(Emoji.b, (emoji, msg) -> {
+				sendMessage("richtige Zahlen, du Hurensohn!", e.getChannel());
+			});
+			addActionMessage(am);
+		});
+	}
+
+	public String getNewRateMessage(GuildMessageReceivedEvent e, Zitat[] temp) {
 		String id = e.getAuthor().getId();
 		int c = 0;
-		if (cmd_body.length > 0 && cmd_body[0].equalsIgnoreCase("all")) {
-			id = "all";
-			c++;
-		}
 
 		System.out.println(id);
-		Zitat[] temp = userinfo.get(id, "rating", Zitat[].class);
-		if (temp == null || temp[0] == null || temp[1] == null) {
-			temp = new Zitat[2];
 
-			int n = lowestZitat();
+		int n = lowestZitat();
 
-			int r = (int) (Math.random() * 2);
-			temp[r] = get_lOR_Zitat(n);
-			do {
-				temp[1 - r] = randomZitat();
-			} while (temp[0].equals(temp[1]));
+		int r = (int) (Math.random() * 2);
+		temp[r] = get_lOR_Zitat(n);
+		do {
+			temp[1 - r] = randomZitat();
+		} while (temp[0].equals(temp[1]));
 
-			erg = temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + e.getAuthor().getAsMention();
+		return temp[0].getAll() + "\n  or  \n" + temp[1].getAll() + "\n" + e.getAuthor().getAsMention();
+	}
 
-			userinfo.put(id, "rating", temp);
-		} else {
-			if (cmd_body.length > 0) {
-				int r = Integer.parseInt(cmd_body[c]) - 1;
+	public void rate(int r, String id, Zitat[] temp) {
+		temp[r].getScore()[0] += 1;
 
-				if (r == 0 || r == 1) {
-					for (int i = 0; i < temp.length; i++)
-						System.out.println(temp[i]);
-
-					temp[r].getScore()[0] += 1;
-
-					for (int i = 0; i < 2; i++) {
-						temp[i].getScore()[1] += 1;
-					}
-
-					int Ra = temp[r].getScore()[2];
-					int Rb = temp[1 - r].getScore()[2];
-
-					double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
-
-					int change = (int) (K * (1 - expected));
-
-					temp[r].getScore()[2] += change;
-					temp[1 - r].getScore()[2] -= change;
-
-					erg = "Voted for: " + temp[r].getAll();
-
-					userinfo.put(id, "rating", null);
-					Inventory i = userinfo.get(id, "Inventory", Inventory.class);
-					if (i != null) {
-						i.addCoins(1);
-						System.out.println(i.getCoins());
-					}
-				} else {
-					erg = "Zwischen 1 und 2 du Evolutionsbremse";
-				}
-			} else {
-				erg = "richtige Zahlen du Hurensohn";
-			}
+		for (int i = 0; i < 2; i++) {
+			temp[i].getScore()[1] += 1;
 		}
 
-		sendMessage(erg, e.getChannel());
+		int Ra = temp[r].getScore()[2];
+		int Rb = temp[1 - r].getScore()[2];
 
-//		saveScores();
+		double expected = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
+
+		int change = (int) (K * (1 - expected));
+
+		temp[r].getScore()[2] += change;
+		temp[1 - r].getScore()[2] -= change;
+		Inventory i = userinfo.get(id, "Inventory", Inventory.class);
+		if (i != null) {
+			i.addCoins(1);
+			System.out.println(i.getCoins());
+		}
+		
+		System.out.println("rated: " + temp[r]);
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -557,7 +574,7 @@ public class Handler implements AudioSendHandler {
 		} else if (game.isOver()) {
 			erg = "Das Spiel is doch schon vorbei du Intelligenz Alleskika";
 		} else {
-			erg = "Die richtige Antwort war " + game.antwort() + ", du Geringverdiener\n" + game.challenge();
+			erg = "Die richtige Antwort war " + game.antwort() + ", du Geringverdiener:in\n" + game.challenge();
 			game.addtoCounter(-1);
 		}
 		sendMessage(erg, e.getChannel());
@@ -1103,16 +1120,11 @@ public class Handler implements AudioSendHandler {
 		userinfo.put(Id, "assign", z);
 	}
 
-	public void cmdScroll(GuildMessageReactionAddEvent e, String[] cmd_body) {
-		for (ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
-			if (sm.matches(e.getChannel().getName(), e.getMessageId())) {
-				sm.setMessage();
-				Emoji emoji = Emoji.fromUnicode(e.getReactionEmote().getAsCodepoints());
-				removeReaction(sm.getMessage(), emoji, e.getUser());
-				sm.fliyp(emoji);
-				userinfo.save();
-				break;
-			}
+	public void cmdResolveActionMessages(GuildMessageReactionAddEvent e, String[] cmd_body) {
+		Message m = e.getChannel().retrieveMessageById(e.getMessageId()).complete();
+		for (ActionMessage am : (ArrayList<ActionMessage>) userinfo.get("guild", "ActionMessages", ArrayList.class)) {
+			if (am.getMessage().equals(m))
+				am.resolveReaction(e.getUser(), Emoji.fromUnicode(cmd_body[0]));
 		}
 	}
 
@@ -1123,17 +1135,19 @@ public class Handler implements AudioSendHandler {
 
 			String ip = in.readLine();
 			String old_ip = userinfo.get("meinkraft", "IP", String.class);
-			
-			if(!ip.equals(old_ip)) {
+
+			if (!ip.equals(old_ip)) {
 				String m = null;
 				TextChannel meinkraft = g.getTextChannelsByName("meinkraft", true).get(0);
-				if((m = userinfo.get("meinkraft", "Message", String.class)) != null){
+				if ((m = userinfo.get("meinkraft", "Message", String.class)) != null) {
 					meinkraft.deleteMessageById(m).queue();
-				};
-				
-				sendMessage(g.getRolesByName("Minecraft", true).get(0).getAsMention() + ": Die neue IP ist " + ip, meinkraft, message -> {
-					userinfo.put("meinkraft","Message", message.getId());
-				});
+				}
+				;
+
+				sendMessage(g.getRolesByName("Minecraft", true).get(0).getAsMention() + ": Die neue IP ist " + ip,
+						meinkraft, message -> {
+							userinfo.put("meinkraft", "Message", message.getId());
+						});
 				userinfo.put("meinkraft", "IP", ip);
 			}
 		} catch (Exception e) {

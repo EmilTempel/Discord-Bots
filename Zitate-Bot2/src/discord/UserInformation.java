@@ -47,7 +47,6 @@ public class UserInformation {
 				new Converter("Zitat", Zitat.class, (v, c) -> z_loader.getZitat(StringToArray(v))),
 				new Converter("Inventory", Inventory.class, (v, c) -> new Inventory(StringToArray(v))),
 				new Converter("TradeOffer", TradeOffer.class, (v, c) -> new TradeOffer(g, this, StringToArray(v))),
-				new Converter("ScrollMessage", ScrollMessage.class, (v,c) -> new ScrollMessage(g, StringToArray(v))),
 //				new Converter("Shop", Shop.class, (v, c) -> new Shop(g, this, StringToArray(v))),
 				new Converter("\\w+(\\[\\])+", Object[].class, (v, c) -> {
 					String[] split = split(v);

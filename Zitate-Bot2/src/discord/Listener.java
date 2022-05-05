@@ -117,7 +117,6 @@ public class Listener extends ListenerAdapter {
 
 	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent e) {
 		if (isRightGuild(e.getGuild())) {
-			System.out.println("reaction");
 			for (Command command : getCommands(ReactionAddCommand.class)) {
 				command.execute(e, e.getReactionEmote().getName());
 			}
