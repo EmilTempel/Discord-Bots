@@ -175,7 +175,8 @@ public class Handler implements AudioSendHandler {
 							e.getChannel());
 				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
 					userinfo.save();
-				}), new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
+				}), new MessageCommand('<', new String[] { "owteam","ow" }, new String[][] { new String[] {} }, this::cmdOwTeam),
+				 new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
 						this::cmdResolveActionMessages)
 				/*
 				 * , new TimedCommand( name = "updateMeinkraft", period = 1000 * 60,
@@ -1155,5 +1156,44 @@ public class Handler implements AudioSendHandler {
 			e.printStackTrace();
 		}
 
+	}
+
+	public void cmdOwTeam(GuildMessageReceivedEvent e, String[] cmd_body) {
+		boolean inVc = false;
+		
+		List<VoiceChannel> l =e.getGuild().getVoiceChannels();
+		for (VoiceChannel VC : l) { 
+			if(VC.getMembers().contains(e.getMember())) {
+				
+				inVc = true;
+				
+				List<Member> temp = VC.getMembers();
+				ArrayList<String> team1 = new ArrayList<>();
+				
+				for (Member m : temp) {					
+						team1.add(m.getEffectiveName());
+					
+				}
+				
+				  ArrayList<String> team2 = new ArrayList<>();
+				  int laenge = team1.size()-1;
+				  for(int i = 0; i <= (0.5* laenge);i++) {
+					  int zahl = (int)(Math.random()*team1.size());
+					  team2.add(team1.get(zahl));
+					  team1.remove(zahl);
+				  }
+				  
+				  
+				sendMessage("**Team 1:** "+team2.toString()+"\n**Team 2:** "+team1.toString(), e.getChannel());
+				
+				  
+				  
+			}															
+		}
+				if(inVc == false) {
+					sendMessage("Du bist nicht im Voice Channel!", e.getChannel());
+				}
+		
+		
 	}
 }
