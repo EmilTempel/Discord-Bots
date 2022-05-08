@@ -47,6 +47,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -102,23 +103,13 @@ public class Handler implements AudioSendHandler {
 		this.zitate = userinfo.getZitatLoader().getZitate();
 		userinfo.put("guild", "zitate", zitate);
 
-		if (userinfo.get("guild", "ActionMessages", ArrayList.class) != null) {
-			for (ActionMessage a : (ArrayList<ActionMessage>) userinfo.get("guild", "ActionMessages",
-					ArrayList.class)) {
-
-			}
-		}
-
 		userinfo.put("guild", "ActionMessages", new ArrayList<ActionMessage>());
 		userinfo.put("guild", "ActionEmojis", new ArrayList<Emoji>());
 
 		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
 				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
 				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
-					Zitat z = new Zitat(e.getMessage());
-					if (z.isFull()) {
-						zitate.add(z);
-					}
+					zitate.add(userinfo.getZitatLoader().getZitat(e.getChannel().getId()+"/"+e.getMessageId()));
 				}), // <rate || <rate 1
 				new MessageCommand('<', new String[] { "rate", "r" }, new String[][] { new String[] {} },
 						this::cmdRate),
@@ -141,9 +132,6 @@ public class Handler implements AudioSendHandler {
 						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig),
 				new MessageCommand('<', new String[] { "participate" }, new String[][] { new String[] {} },
 						this::cmdParticipate),
-				new MessageCommand('<', new String[] { "accept" }, new String[][] { new String[] {} }, this::cmdAccept),
-				new MessageCommand('<', new String[] { "decline" }, new String[][] { new String[] {} },
-						this::cmdDecline),
 				new MessageCommand('<', new String[] { "leaveSupercoolesEvent" }, new String[][] { new String[] {} },
 						this::cmdLeaveEvent),
 				new MessageCommand('<', new String[] { "trade" }, new String[][] {
@@ -175,8 +163,10 @@ public class Handler implements AudioSendHandler {
 							e.getChannel());
 				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
 					userinfo.save();
-				}), new MessageCommand('<', new String[] { "owteam","ow" }, new String[][] { new String[] {} }, this::cmdOwTeam),
-				 new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
+				}),
+				new MessageCommand('<', new String[] { "owteam", "ow" }, new String[][] { new String[] {} },
+						this::cmdOwTeam),
+				new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
 						this::cmdResolveActionMessages)
 				/*
 				 * , new TimedCommand( name = "updateMeinkraft", period = 1000 * 60,
@@ -245,6 +235,10 @@ public class Handler implements AudioSendHandler {
 		if (m != null) {
 			m.removeReaction(emoji, user).queue();
 		}
+	}
+	
+	public static void removeAllReactions(Message m) {
+		m.clearReactions().queue();
 	}
 
 	public ArrayList<Zitat> getZitate() {
@@ -385,6 +379,7 @@ public class Handler implements AudioSendHandler {
 
 		sendMessage(erg, e.getChannel(), m -> {
 			ActionMessage am = new ActionMessage(m, true, e.getAuthor());
+
 			am.addAction(Emoji.one, (emoji, msg) -> {
 				rate(0, e.getAuthor().getId(), temp);
 				editMessage(m, getNewRateMessage(e, temp));
@@ -402,6 +397,7 @@ public class Handler implements AudioSendHandler {
 			am.addAction(Emoji.b, (emoji, msg) -> {
 				sendMessage("richtige Zahlen, du Hurensohn!", e.getChannel());
 			});
+
 			addActionMessage(am);
 		});
 	}
@@ -444,7 +440,7 @@ public class Handler implements AudioSendHandler {
 			i.addCoins(1);
 			System.out.println(i.getCoins());
 		}
-		
+
 		System.out.println("rated: " + temp[r]);
 	}
 
@@ -856,46 +852,54 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdParticipate(GuildMessageReceivedEvent e, String[] cmd_body) {
-		Member m = e.getGuild().getMember(e.getAuthor());
-		if (!acceptParticipation.contains(m)) {
-			sendMessage(m.getAsMention() + "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
+		Member member = e.getGuild().getMember(e.getAuthor());
+		if (!acceptParticipation.contains(member)) {
+			sendMessage(member.getAsMention()
+					+ "Wenn du mitmachen willst, musst du trotzdem wirklich EHRLICH Zitate raten, "
 					+ "auch wenn es verlockend wäre, manche zu bevorzugen, aber dann machst du es kaputt :( "
-					+ "Stimmst du zu? tippe <accept. Willst du nicht mitmachen, dann tippe <decline. "
+					+ "Stimmst du zu? tippe accept. Willst du nicht mitmachen, dann tippe decline. "
 					+ "Falls du jemals wieder aussteigen möchtest, schreibe zweimal nacheinander <leaveSupercoolesEvent. "
-					+ "!Achtung! dein Inventar wird gelöscht!", e.getChannel());
+					+ "!Achtung! dein Inventar wird gelöscht!", e.getChannel(), m -> {
+						ActionMessage am = new ActionMessage(m, true, e.getAuthor());
 
-			acceptParticipation.add(m);
+						am.addAction(Emoji.accept, (emoji, msg) -> {
+							acceptGnocchiGang(e.getAuthor(), e.getChannel());
+							deleteMessage(msg.getId(), e.getChannel());
+						});
+
+						am.addAction(Emoji.x, (emoji, msg) -> {
+							declineGnocchiGang(e.getAuthor(), e.getChannel());
+							deleteMessage(msg.getId(), e.getChannel());
+						});
+
+						addActionMessage(am);
+					});
+
 		}
 	}
 
-	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
-		Member m = e.getGuild().getMember(e.getAuthor());
-		String id = e.getAuthor().getId();
-		if (acceptParticipation.contains(m)) {
-			acceptParticipation.remove(m);
-			if (userinfo.get(id, "inventory", Inventory.class) == null) {
-				userinfo.put(id, "inventory", new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(),
-						new HashMap<Challenge, Boolean>()));
-			}
-			giveRole(e.getGuild(), m, "Gnocci-Gang");
-			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
+	public void acceptGnocchiGang(User user, TextChannel channel) {
+		Member m = g.getMember(user);
+		String id = user.getId();
+		if (userinfo.get(id, "Inventory", Inventory.class) == null) {
+			userinfo.put(id, "Inventory", new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(),
+					new HashMap<Challenge, Boolean>()));
 		}
+		giveRole(g, m, "Gnocci-Gang");
+		sendMessage(m.getAsMention() + "Du bist dabei!", channel);
 	}
 
-	public void cmdDecline(GuildMessageReceivedEvent e, String[] cmd_body) {
-		Member m = e.getGuild().getMember(e.getAuthor());
-		if (acceptParticipation.contains(m)) {
-			acceptParticipation.remove(m);
-			sendMessage(m.getAsMention() + "Dann halt nicht. So nervig einfach", e.getChannel());
-		}
+	public void declineGnocchiGang(User user, TextChannel channel) {
+		Member m = g.getMember(user);
+		sendMessage(m.getAsMention() + "Dann halt nicht. So nervig einfach", channel);
 	}
 
 	public void cmdLeaveEvent(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
 		String Id = e.getAuthor().getId();
 		if (leaveEvent.contains(m)) {
-			if (userinfo.get(Id, "inventory", Inventory.class) != null) {
-				userinfo.put(Id, "inventory", null);
+			if (userinfo.get(Id, "Inventory", Inventory.class) != null) {
+				userinfo.put(Id, "Inventory", null);
 			}
 			removeRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du machst dich vom Acker", e.getChannel());
@@ -998,15 +1002,17 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdInventory(GuildMessageReceivedEvent e, String[] cmd_body) {
-		Member m = e.getGuild().getMember(e.getAuthor());
-		if (!m.getRoles().contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+		Member m = g.getMember(e.getAuthor());
+		System.out.println(e.getAuthor().getName());
+		if (!m.getRoles().contains(g.getRolesByName("Gnocci-Gang", true).get(0))) {
 			System.out.println("nicht Gnocci-Gang");
 			return;
 		}
 
-		Inventory inv = userinfo.get(e.getAuthor().getId(), "inventory", Inventory.class);
+		Inventory inv = userinfo.get(e.getAuthor().getId(), "Inventory", Inventory.class);
+		System.out.println(inv);
 
-		sendScrollMessage("Inventar von " + m.getAsMention(), "" + (int) inv.getCoins(), inv.toFormat(m),
+		sendScrollMessage("Inventar von " + m.getNickname(), "" + (int) inv.getCoins(), inv.toFormat(m),
 				e.getChannel());
 
 	}
@@ -1160,40 +1166,36 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdOwTeam(GuildMessageReceivedEvent e, String[] cmd_body) {
 		boolean inVc = false;
-		
-		List<VoiceChannel> l =e.getGuild().getVoiceChannels();
-		for (VoiceChannel VC : l) { 
-			if(VC.getMembers().contains(e.getMember())) {
-				
+
+		List<VoiceChannel> l = e.getGuild().getVoiceChannels();
+		for (VoiceChannel VC : l) {
+			if (VC.getMembers().contains(e.getMember())) {
+
 				inVc = true;
-				
+
 				List<Member> temp = VC.getMembers();
 				ArrayList<String> team1 = new ArrayList<>();
-				
-				for (Member m : temp) {					
-						team1.add(m.getEffectiveName());
-					
+
+				for (Member m : temp) {
+					team1.add(m.getEffectiveName());
+
 				}
-				
-				  ArrayList<String> team2 = new ArrayList<>();
-				  int laenge = team1.size()-1;
-				  for(int i = 0; i <= (0.5* laenge);i++) {
-					  int zahl = (int)(Math.random()*team1.size());
-					  team2.add(team1.get(zahl));
-					  team1.remove(zahl);
-				  }
-				  
-				  
-				sendMessage("**Team 1:** "+team2.toString()+"\n**Team 2:** "+team1.toString(), e.getChannel());
-				
-				  
-				  
-			}															
+
+				ArrayList<String> team2 = new ArrayList<>();
+				int laenge = team1.size() - 1;
+				for (int i = 0; i <= (0.5 * laenge); i++) {
+					int zahl = (int) (Math.random() * team1.size());
+					team2.add(team1.get(zahl));
+					team1.remove(zahl);
+				}
+
+				sendMessage("**Team 1:** " + team2.toString() + "\n**Team 2:** " + team1.toString(), e.getChannel());
+
+			}
 		}
-				if(inVc == false) {
-					sendMessage("Du bist nicht im Voice Channel!", e.getChannel());
-				}
-		
-		
+		if (inVc == false) {
+			sendMessage("Du bist nicht im Voice Channel!", e.getChannel());
+		}
+
 	}
 }

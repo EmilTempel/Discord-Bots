@@ -21,10 +21,11 @@ public class Inventory {
 	private ArrayList<Zitat> zitate;
 	private ArrayList<LootBox> lootboxen;
 	private HashMap<Challenge, Boolean> challenges;
-	
+
 	private static int itemsPerPage = 5;
 
-	public Inventory(double coins, ArrayList<Zitat> zitate, ArrayList<LootBox> lootboxen, HashMap<Challenge, Boolean> challenges) {
+	public Inventory(double coins, ArrayList<Zitat> zitate, ArrayList<LootBox> lootboxen,
+			HashMap<Challenge, Boolean> challenges) {
 		this.coins = coins;
 		this.zitate = zitate;
 		this.lootboxen = lootboxen;
@@ -33,9 +34,9 @@ public class Inventory {
 
 	public Inventory(Object[] o) {
 		this.coins = (double) o[0];
-		this.zitate = (ArrayList<Zitat>) o[1];
-		this.lootboxen = (ArrayList<LootBox>) o[2];
-		this.challenges = (HashMap<Challenge, Boolean>) o[3];
+		this.zitate = o[1] != null ? (ArrayList<Zitat>) o[1] : new ArrayList<>();
+		this.lootboxen = o[2] != null ? (ArrayList<LootBox>) o[2] : new ArrayList<>();
+		this.challenges = o[3] != null ? (HashMap<Challenge, Boolean>) o[3] : new HashMap<>();
 	}
 
 	public void addCoins(double amount) {
@@ -57,7 +58,7 @@ public class Inventory {
 	public void removeZitat(int i) {
 		zitate.remove(i);
 	}
-	
+
 	public void removeZitat(Zitat z) {
 		zitate.remove(z);
 	}
@@ -105,7 +106,7 @@ public class Inventory {
 			Graphics g0 = img[i].getGraphics();
 			g0.setColor(Color.BLACK);
 			g0.setFont(new Font("Calibri", Font.BOLD, 20));
-			
+
 			for (int j = 6 + i * 7; j < 13 + i * 7; i++) {
 				if (zitate.size() > j) {
 					g0.drawString(j + ": " + zitate.get(j), 20, 50 + 50 * j);
@@ -115,7 +116,7 @@ public class Inventory {
 
 		return img;
 	}
-	
+
 	public String[][][] toFormat(Member m) {
 		int size0 = zitate.size() / itemsPerPage;
 		if (zitate.size() % itemsPerPage != 0) {
@@ -130,7 +131,7 @@ public class Inventory {
 			size2++;
 		}
 		String[][][] erg = new String[size0 + size1 + size2][itemsPerPage][3];
-		
+
 		for (int i = 0; i < size0; i++) {
 			erg[i][0][0] = "Zitate";
 			for (int j = 1; j < itemsPerPage + 1; j++) {
@@ -138,7 +139,7 @@ public class Inventory {
 					erg[i][j][0] = zitate.get(i * itemsPerPage + j - 1).getRarity() + "enes Zitat";
 					erg[i][j][1] = zitate.get(i * itemsPerPage + j - 1).getAll();
 					erg[i][j][2] = "false";
-				}catch(Exception x) {
+				} catch (Exception x) {
 					x.printStackTrace();
 					erg[i][j][0] = "";
 					erg[i][j][1] = "";
@@ -153,7 +154,7 @@ public class Inventory {
 					erg[i][j][0] = lootboxen.get(i * itemsPerPage + j - 1).type.name();
 					erg[i][j][1] = lootboxen.get(i * itemsPerPage + j - 1).type.description;
 					erg[i][j][2] = "false";
-				}catch(Exception x) {
+				} catch (Exception x) {
 					x.printStackTrace();
 					erg[i][j][0] = "";
 					erg[i][j][1] = "";
@@ -170,13 +171,13 @@ public class Inventory {
 //					erg[i][j][2] = "false";
 //				}catch(Exception x) {
 //					x.printStackTrace();
-					erg[i][j][0] = "";
-					erg[i][j][1] = "";
-					erg[i][j][2] = "false";
+				erg[i][j][0] = "";
+				erg[i][j][1] = "";
+				erg[i][j][2] = "false";
 //				}
 			}
 		}
-		
+
 //				new String[size];
 //		
 //		erg[0] = m.getUser().getAsMention() + "'s Inventory: \n";
@@ -184,6 +185,11 @@ public class Inventory {
 //		
 //		
 //		
+		if (erg.length == 0) {
+			erg = new String[][][] {
+					new String[][] { new String[] { "Dein Inventar ist ganz leer", "du Geringverdiener", "false" } } };
+		}
+
 		return erg;
 	}
 

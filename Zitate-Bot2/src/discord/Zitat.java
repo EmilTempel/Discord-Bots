@@ -7,34 +7,44 @@ import potatocoin.Dropable;
 import potatocoin.Inventory;
 import potatocoin.Shop;
 
-public class Zitat extends Dropable{
+public class Zitat extends Dropable {
 
 	String inhalt, autor, untertitel, schreiber, ID, channel;
-	Integer[] score; 
+	Integer[] score;
 	ArrayList<String> tags;
+	int number;
 	String besitzer;
 
 	public Zitat(Message msg) {
 		String z = msg.getContentRaw();
-		if (z.contains(" -") && z.contains(",")) {
-			String[] s = z.split(" -");
-			inhalt = s[0].trim();
-
-			if (s[1].contains(",")) {
-				String[] u = s[1].split(",");
-				autor = u[0].trim();
-				untertitel = u[1].trim();
+		if (z.charAt(0) == '"') {
+			for (int i = 1; i < z.length(); i++) {
+				if (z.charAt(i) == '"') {
+					inhalt = z.substring(0, i + 1);
+					for (int j = i + 1; j < z.length(); j++) {
+						if (z.charAt(j) == '-') {
+							for (int k = j + 1; k < z.length(); k++) {
+								if(z.charAt(k) == ',') {
+								autor = z.substring(j+1, k).trim();
+								untertitel = z.substring(k+1, z.length());
+								break;
+								}
+							}
+							break;
+						}
+					}
+					break;
+				}
 			}
 
-			schreiber = msg.getAuthor().isBot() ? z.split("<")[1].replace(">","") : msg.getAuthor().getName().trim();
+			schreiber = msg.getAuthor().isBot() ? z.split("<")[1].replace(">", "") : msg.getAuthor().getName().trim();
 			ID = msg.getId();
 			channel = msg.getChannel().getName();
 		}
-		score = new Integer[] {0,0,0};
+		score = new Integer[] { 0, 0, 0 };
 		tags = new ArrayList<String>();
 		besitzer = null;
 	}
-	
 
 	public boolean isFull() {
 		return inhalt != null && autor != null && untertitel != null && schreiber != null;
@@ -59,7 +69,7 @@ public class Zitat extends Dropable{
 	public String getSchreiber() {
 		return schreiber;
 	}
-	
+
 	public String getChannel() {
 		return channel;
 	}
@@ -69,48 +79,56 @@ public class Zitat extends Dropable{
 	}
 
 	public String getPath() {
-		return channel+"/"+ID;
+		return channel + "/" + ID;
 	}
-	
+
 	public void setScore(int i, int value) {
 		score[i] = value;
 	}
-	
+
 	public void setScore(Integer[] arr) {
 		score = arr;
 	}
-	
+
 	public Integer[] getScore() {
 		return score;
 	}
-	
+
 	public void addTag(String tag) {
 		tags.add(tag);
 	}
-	
+
 	public void setTags(ArrayList<String> list) {
 		tags = list;
 	}
-	
-	public ArrayList<String> getTags(){
+
+	public ArrayList<String> getTags() {
 		return tags;
 	}
-	
+
 	public void setBesitzer(String besitzer) {
 		this.besitzer = besitzer;
 	}
-	
+
 	public String getBesitzer() {
 		return besitzer;
 	}
-	
+
+	public void setNumber(int number) {
+		this.number = number;
+	}
+
+	public int getNumber() {
+		return number;
+	}
+
 	public double calcPrice() {
 		double erg = score[2] * Shop.pricePerScore;
-		return (erg < Shop.minPrice)? Shop.minPrice : erg;
+		return (erg < Shop.minPrice) ? Shop.minPrice : erg;
 	}
-	
+
 	public String toString() {
-		return UserInformation.ArrayToString(new Object[] {channel, ID, score, tags, besitzer});
+		return UserInformation.ArrayToString(new Object[] { channel, ID, score, tags, besitzer });
 	}
 
 	public void drop(UserInformation ui, String UserId) {

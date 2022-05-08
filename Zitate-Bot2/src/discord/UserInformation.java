@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -106,6 +107,7 @@ public class UserInformation {
 				for (String element : json) {
 					if (!element.equals("")) {
 						String[] e = element.split(":");
+						System.out.println("value = " + e[1]);
 						Object o = fromString(e[1], e[2]);
 						if (o != null) {
 							value.put(e[0], o);
@@ -325,17 +327,20 @@ public class UserInformation {
 		Object[] o = new Object[split.length];
 
 		for (int i = 0; i < split.length; i++) {
-			String[] s = split[i].substring(1, split[i].length() - 1).split("§");
-
+			String[] s = split[i].substring(1, split[i].length() - 1).split("&");
+			System.out.println(Arrays.toString(s));
 			o[i] = fromString(s[0], s[1]);
+			System.out.println(o[i]);
+			System.out.println();
 		}
+		System.out.println(o);
 		return o;
 	}
 
 	public static String ArrayToString(Object... o) {
 		String str = "";
 		for (int i = 0; i < o.length; i++) {
-			str += "[" + toFormat(o[i]) + "§" + toType(o[i]) + "]";
+			str += "[" + toFormat(o[i]) + "&" + toType(o[i]) + "]";
 			if (i != o.length - 1) {
 				str += ",";
 			}
