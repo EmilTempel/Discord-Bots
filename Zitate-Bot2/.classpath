@@ -11,5 +11,18 @@
 	<classpathentry kind="lib" path="lib/mbrola.jar"/>
 	<classpathentry kind="lib" path="lib/schach.jar"/>
 	<classpathentry kind="lib" path="lib/freetts-jsapi10.jar"/>
+	<classpathentry kind="lib" path="libraries/cmu_time_awb.jar"/>
+	<classpathentry kind="lib" path="libraries/cmu_us_kal.jar"/>
+	<classpathentry kind="lib" path="libraries/cmudict04.jar"/>
+	<classpathentry kind="lib" path="libraries/cmulex.jar"/>
+	<classpathentry kind="lib" path="libraries/cmutimelex.jar"/>
+	<classpathentry kind="lib" path="libraries/en_us.jar"/>
+	<classpathentry kind="lib" path="libraries/freetts-jsapi10.jar"/>
+	<classpathentry kind="lib" path="libraries/freetts.jar"/>
+	<classpathentry kind="lib" path="libraries/JDA-4.2.1_266-withDependencies.jar"/>
+	<classpathentry kind="lib" path="libraries/Lavalink.jar"/>
+	<classpathentry kind="lib" path="libraries/lavaplayer-1.2.39.jar"/>
+	<classpathentry kind="lib" path="libraries/mbrola.jar"/>
+	<classpathentry kind="lib" path="libraries/schach.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
