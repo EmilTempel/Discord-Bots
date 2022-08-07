@@ -14,6 +14,12 @@ public class ReactionAddCommand extends Command{
 		this.exe = exe;
 	}
 	
+	public ReactionAddCommand(Emoji emoji, Executable<GuildMessageReactionAddEvent> exe) {
+		this.emojis = new ArrayList<>();
+		emojis.add(emoji);
+		this.exe = exe;
+	}
+	
 	public void execute(Event e, String... cmd_body) {
 		if(active) {
 			GuildMessageReactionAddEvent e1 = (GuildMessageReactionAddEvent) e;

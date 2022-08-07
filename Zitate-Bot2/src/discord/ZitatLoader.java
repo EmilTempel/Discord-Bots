@@ -26,7 +26,7 @@ public class ZitatLoader {
 		z = new HashMap<String, Zitat>();
 		load();
 		assignRarity();
-		numerate();
+//		numerate();
 	}
 
 	public void load() {

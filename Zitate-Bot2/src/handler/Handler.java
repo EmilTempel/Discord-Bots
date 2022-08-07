@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -168,6 +169,7 @@ public class Handler implements AudioSendHandler {
 						this::cmdOwTeam),
 				new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
 						this::cmdResolveActionMessages)
+						
 				/*
 				 * , new TimedCommand( name = "updateMeinkraft", period = 1000 * 60,
 				 * this::updateMeinkraft)

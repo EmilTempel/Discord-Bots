@@ -136,4 +136,19 @@ public class Zitat extends Dropable {
 		i.addZitat(this);
 		besitzer = UserId;
 	}
+	
+//	public enum Format{
+//		
+//		MONOLOG, DIALOG;
+//		
+//		FormatChecker checker;
+//		
+//		Format(FormatChecker checker){
+//			this.checker = checker;
+//		}
+//	}
+//	
+//	interface FormatChecker{
+//		public boolean check(String s);
+//	}
 }
