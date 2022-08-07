@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat.Type;
@@ -30,12 +33,14 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 import commands.Command;
 import commands.MessageCommand;
 import commands.ReactionAddCommand;
+import commands.TimedCommand;
 import discord.Configuration;
 import discord.Emoji;
 import discord.Game;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
+import math.Functions.Executable;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -111,6 +116,8 @@ public class Handler implements AudioSendHandler {
 				}),
 				new MessageCommand('<', new String[] { "rate", "r" },
 						new String[][] { new String[] {}, new String[] { "[1-2]" } }, this::cmdRate),
+				new MessageCommand('<', new String[] { "loadScores" }, new String[][] { new String[] {} },
+						this::cmdLoadScores),
 				new MessageCommand('<', new String[] { "top" },
 						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
 				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
@@ -145,19 +152,19 @@ public class Handler implements AudioSendHandler {
 				new MessageCommand('<', new String[] { "assignTag" },
 						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
 						this::cmdassignTag),
-				new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
+				new MessageCommand('<', new String[] { "owteam","ow" }, new String[][] { new String[] {} }, this::cmdOwTeam),
+							new ReactionAddCommand("👍", this::cmdAcceptTrade), new ReactionAddCommand("👎", this::cmdDeclineTrade),
 				new ReactionAddCommand("any",
-						(e, s) -> System.out.println(e.getReactionEmote().getAsCodepoints() + " : " + e.getReactionEmote().getName())),
+						(e, s) -> System.out.println(
+								e.getReactionEmote().getAsCodepoints() + " : " + e.getReactionEmote().getName())),
 				new ReactionAddCommand("any", this::cmdScroll),
 				new MessageCommand('<', new String[] { "inventory", "inv", "i" }, new String[][] { new String[0] },
 						this::cmdInventory),
 				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
-					String[][][] content = { { { "Jakob", "stinkt" , "true"}, { "und", "ist blöd", "false" } },
-							{ { "Jakob ist ein", "Hurensohn" ,"false"} } };
-					sendScrollMessage("Test123", "das ist ein cooler Test",content, e.getChannel());
-					
-
-				}) };
+					System.out.println(e.getMember());
+				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
+					userinfo.save();
+				})/*, new TimedCommand( name = "updateMeinkraft",  period = 1000 * 60, this::updateMeinkraft)*/ };
 
 		config = new Configuration(userinfo, commands);
 
@@ -175,38 +182,48 @@ public class Handler implements AudioSendHandler {
 		channel.sendMessage(msg).queue();
 	}
 	
+	public static void sendMessage(String msg, TextChannel channel, Consumer<? super Message> consumer) {
+		channel.sendMessage(msg).queue(consumer);
+	}
+
 	public static void editMessage(Message m, String content) {
 		m.editMessage(content).queue();
 	}
-	
+
 	public static void editMessage(Message m, MessageEmbed content) {
 		m.editMessage(content).queue();
 	}
 
 	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
 		ScrollMessage sm = new ScrollMessage(g, null, null, title, description, content, 0);
-		
+
 		channel.sendMessage(sm.getContent(0)).queue(m -> {
 			sm.setMessage(m);
 			ArrayList<ScrollMessage> sms = userinfo.get("guild", "ScrollMessages", ArrayList.class);
 			sms.add(sm);
-			if(sms.size() > 100)
+			if (sms.size() > 100)
 				sms.remove(0);
 		});
 	}
-	
+
+	public void addAcceptButton(Message m, Executable accept, Executable decline) {
+		addReaction(m, Emoji.accept);
+		addReaction(m, Emoji.x);
+
+	}
+
 	public static void addReaction(Message m, Emoji emoji) {
 		if (m != null) {
 			m.addReaction(emoji.code).queue();
 		}
 	}
-	
+
 	public static void removeReaction(Message m, Emoji emoji, User user) {
 		if (m != null) {
 			m.removeReaction(emoji.code, user).queue();
 		}
 	}
-	
+
 	public static void removeReaction(Message m, String emoji, User user) {
 		if (m != null) {
 			m.removeReaction(emoji, user).queue();
@@ -257,14 +274,14 @@ public class Handler implements AudioSendHandler {
 		}
 
 		if (temp.size() == 0) {
-			return get_lOR_Zitat(n + 1);
+			return get_lOR_Zitat(++n);
 		} else {
 			return temp.get((int) (Math.random() * temp.size()));
 		}
 
 	}
 
-	public void loadScores() {
+	public void loadScores(HashMap<String, Integer[]> scores, String path) {
 		BufferedReader reader;
 		try {
 			if (new File(path).exists()) {
@@ -309,6 +326,20 @@ public class Handler implements AudioSendHandler {
 			e.printStackTrace();
 		}
 
+	}
+
+	public void cmdLoadScores(GuildMessageReceivedEvent e, String[] cmd_body) {
+		HashMap<String, Integer[]> scores = new HashMap<String, Integer[]>();
+		loadScores(scores, "zitat_scores");
+		System.out.println(scores);
+		System.out.println("true");
+		for (Entry<String, Integer[]> entry : scores.entrySet()) {
+			for (Zitat z : zitate) {
+				if (z.getID().equals(entry.getKey())) {
+					z.setScore(entry.getValue());
+				}
+			}
+		}
 	}
 
 	public void cmdStats(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -383,7 +414,10 @@ public class Handler implements AudioSendHandler {
 
 					userinfo.put(id, "rating", null);
 					Inventory i = userinfo.get(id, "Inventory", Inventory.class);
-					i.addCoins(1);
+					if (i != null) {
+						i.addCoins(1);
+						System.out.println(i.getCoins());
+					}
 				} else {
 					erg = "Zwischen 1 und 2 du Evolutionsbremse";
 				}
@@ -398,7 +432,6 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		loadScores();
 		String erg = "";
 		int top = 0;
 		if (cmd_body.length > 0) {
@@ -820,11 +853,12 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdAccept(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
+		String id = e.getAuthor().getId();
 		if (acceptParticipation.contains(m)) {
 			acceptParticipation.remove(m);
-			if (userinfo.get(m.getId(), "inventory", Inventory.class) == null) {
-				userinfo.put(m.getId(), "inventory",
-						new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(), new HashMap<Challenge, Boolean>()));
+			if (userinfo.get(id, "inventory", Inventory.class) == null) {
+				userinfo.put(id, "inventory", new Inventory(0, new ArrayList<Zitat>(), new ArrayList<LootBox>(),
+						new HashMap<Challenge, Boolean>()));
 			}
 			giveRole(e.getGuild(), m, "Gnocci-Gang");
 			sendMessage(m.getAsMention() + "Du bist dabei!", e.getChannel());
@@ -948,26 +982,25 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdInventory(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
-		if (!m.getRoles()
-				.contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+		if (!m.getRoles().contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
 			System.out.println("nicht Gnocci-Gang");
 			return;
 		}
-		
+
 		Inventory inv = userinfo.get(e.getAuthor().getId(), "inventory", Inventory.class);
-		
-		sendScrollMessage("Inventar von " + m.getAsMention(), "" + (int) inv.getCoins(), inv.toFormat(m), e.getChannel());
+
+		sendScrollMessage("Inventar von " + m.getAsMention(), "" + (int) inv.getCoins(), inv.toFormat(m),
+				e.getChannel());
 
 	}
-	
+
 	public void cmdShop(GuildMessageReceivedEvent e, String[] cmd_body) {
 		Member m = e.getGuild().getMember(e.getAuthor());
-		if (!m.getRoles()
-				.contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
+		if (!m.getRoles().contains(e.getGuild().getRolesByName("Gnocci-Gang", true).get(0))) {
 			System.out.println("nicht Gnocci-Gang");
 			return;
 		}
-		
+
 		Shop shop = userinfo.get(m.getUser().getId(), "shop", Shop.class);
 		if (shop == null) {
 			shop = userinfo.get("guild", "shop", Shop.class);
@@ -979,8 +1012,9 @@ public class Handler implements AudioSendHandler {
 			shop.cloneTo(m.getUser());
 			shop = userinfo.get(m.getUser().getId(), "shop", Shop.class);
 		}
-		
-		sendScrollMessage("Shop für " + m.getAsMention(), "Nächste Reset in " + (int) shop.getNextResetInMins() + " Minuten", shop.toFormat(), e.getChannel());
+
+		sendScrollMessage("Shop für " + m.getAsMention(),
+				"Nächste Reset in " + (int) shop.getNextResetInMins() + " Minuten", shop.toFormat(), e.getChannel());
 	}
 
 	public void cmdaddTag(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -1065,11 +1099,50 @@ public class Handler implements AudioSendHandler {
 							e.getChannel());
 					z = null;
 				}
-			
+
 		}
 		userinfo.put(Id, "assign", z);
 	}
 
+	public void cmdOwTeam(GuildMessageReceivedEvent e, String[] cmd_body) {
+		boolean inVc = false;
+		
+		List<VoiceChannel> l =e.getGuild().getVoiceChannels();
+		for (VoiceChannel VC : l) { 
+			if(VC.getMembers().contains(e.getMember())) {
+				
+				inVc = true;
+				
+				List<Member> temp = VC.getMembers();
+				ArrayList<String> team1 = new ArrayList<>();
+				
+				for (Member m : temp) {					
+						team1.add(m.getEffectiveName());
+					
+				}
+				
+				  ArrayList<String> team2 = new ArrayList<>();
+				  int laenge = team1.size()-1;
+				  for(int i = 0; i <= (0.5* laenge);i++) {
+					  int zahl = (int)(Math.random()*team1.size());
+					  team2.add(team1.get(zahl));
+					  team1.remove(zahl);
+				  }
+				  
+				  
+				sendMessage("**Team 1:** "+team2.toString()+"\n**Team 2:** "+team1.toString(), e.getChannel());
+				
+				  
+				  
+			}															
+		}
+				if(inVc == false) {
+					sendMessage("Du bist nicht im Voice Channel!", e.getChannel());
+				}
+		
+		
+	}
+	
 	public void cmdScroll(GuildMessageReactionAddEvent e, String[] cmd_body) {
 		for (ScrollMessage sm : (ArrayList<ScrollMessage>) userinfo.get("guild", "ScrollMessages", ArrayList.class)) {
 			if (sm.matches(e.getChannel().getName(), e.getMessageId())) {
@@ -1081,5 +1154,32 @@ public class Handler implements AudioSendHandler {
 				break;
 			}
 		}
+	}
+
+	public void updateMeinkraft(Integer i, String[] cmd_body) {
+		try {
+			URL whatismyip = new URL("http://checkip.amazonaws.com");
+			BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+			String ip = in.readLine();
+			String old_ip = userinfo.get("meinkraft", "IP", String.class);
+			
+			if(!ip.equals(old_ip)) {
+				String m = null;
+				TextChannel meinkraft = g.getTextChannelsByName("meinkraft", true).get(0);
+				if((m = userinfo.get("meinkraft", "Message", String.class)) != null){
+					meinkraft.deleteMessageById(m).queue();
+				};
+				
+				sendMessage(g.getRolesByName("Minecraft", true).get(0).getAsMention() + ": Die neue IP ist " + ip, meinkraft, message -> {
+					userinfo.put("meinkraft","Message", message.getId());
+				});
+				userinfo.put("meinkraft", "IP", ip);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }

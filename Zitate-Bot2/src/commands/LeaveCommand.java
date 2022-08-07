@@ -6,10 +6,10 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 
 public class LeaveCommand extends Command {
 
-	Executable exe;
+	Executable<GuildVoiceLeaveEvent> exe;
 	Configuration c;
 
-	public LeaveCommand(Executable exe, Configuration c) {
+	public LeaveCommand(Executable<GuildVoiceLeaveEvent> exe, Configuration c) {
 		this.exe = exe;
 	}
 
@@ -17,10 +17,6 @@ public class LeaveCommand extends Command {
 		if (active) {
 			exe.run((GuildVoiceLeaveEvent) e, cmd_body);
 		}
-	}
-
-	interface Executable {
-		public abstract void run(GuildVoiceLeaveEvent e, String... cmd_body);
 	}
 
 	public String getName() {
