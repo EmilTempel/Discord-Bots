@@ -55,6 +55,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import potatocoin.Challenge;
 import potatocoin.GnocciGangException;
@@ -106,6 +107,7 @@ public class Handler implements AudioSendHandler {
 		Thread t = new Thread(numerator::numerate);
 		t.start();
 
+		userinfo.orElseGet("guild", "AMstoDelete", ArrayList.class, new ArrayList<ActionMessage>());
 		userinfo.put("guild", "ActionMessages", new ArrayList<ActionMessage>());
 		userinfo.put("guild", "ActionEmojis", new ArrayList<Emoji>());
 
@@ -118,8 +120,7 @@ public class Handler implements AudioSendHandler {
 				}), // <rate || <rate 1
 				new MessageCommand(prefix, new String[] { "rate", "r" }, new String[][] { {} }, this::cmdRate),
 				new MessageCommand(prefix, new String[] { "loadScores" }, new String[][] { {} }, this::cmdLoadScores),
-				new MessageCommand(prefix, new String[] { "top" },
-						new String[][] { new String[] {}}, this::cmdTop),
+				new MessageCommand(prefix, new String[] { "top" }, new String[][] { new String[] {} }, this::cmdTop),
 				new MessageCommand(prefix, new String[] { "spiel", "s" }, new String[][] { { "\\d+" } },
 						this::cmdSpiel),
 				new MessageCommand(prefix, new String[] { "guess", "g" }, new String[][] { { ".+" } }, this::cmdGuess),
@@ -179,6 +180,8 @@ public class Handler implements AudioSendHandler {
 		leaveEvent = new ArrayList<Member>();
 
 		Runtime.getRuntime().addShutdownHook(new Thread(userinfo::save));
+
+		deleteActionMessages();
 	}
 
 	public Command[] getCommands() {
@@ -213,9 +216,19 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void addActionMessage(ActionMessage a) {
+		userinfo.get("guild", "AMstoDelete", ArrayList.class)
+				.add(new String[] { a.getMessage().getChannel().getId(), a.getMessage().getId() });
 		userinfo.get("guild", "ActionMessages", ArrayList.class).add(a);
 		userinfo.get("guild", "ActionEmojis", ArrayList.class).addAll(a.getEmojis());
 		a.addReactions();
+	}
+
+	public void deleteActionMessages() {
+		for (Object o : userinfo.get("guild", "AMstoDelete", ArrayList.class)) {
+			String[] s = (String[]) o;
+			deleteMessage(s[1], g.getTextChannelById(s[0]));
+		}
+		userinfo.put("guild", "AMstoDelete", new ArrayList<String[]>());
 	}
 
 	public static void addReaction(Message m, Emoji emoji) {
@@ -373,7 +386,8 @@ public class Handler implements AudioSendHandler {
 
 	public void cmdSearch(GuildMessageReceivedEvent e, String[] cmd_body) {
 		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().contains(cmd_body[0])).toList();
-		sendScrollMessage("Alle Zitate die \"" + cmd_body[0] + "\" enthalten", "", toScrollContent(searched, 10, z -> ""), e.getChannel());
+		sendScrollMessage("Alle " + searched.size() + " Zitate die \"" + cmd_body[0] + "\" enthalten", "",
+				toScrollContent(searched, 10, z -> ""), e.getChannel());
 	}
 
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
@@ -449,8 +463,10 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		List<Zitat> sorted = zitate.stream().sorted((a,b) -> Integer.compare(a.getScore()[2], b.getScore()[2])).toList();
-		sendScrollMessage("Die Top Zitate allerzeiten", "", toScrollContent(sorted, 10, z -> " (" + z.getScore()[2] + ")"), e.getChannel());
+		List<Zitat> sorted = zitate.stream().sorted((a, b) -> Integer.compare(a.getScore()[2], b.getScore()[2]))
+				.toList();
+		sendScrollMessage("Die Top Zitate allerzeiten", "",
+				toScrollContent(sorted, 10, z -> " (" + z.getScore()[2] + ")"), e.getChannel());
 	}
 
 	public Set<Entry<String, Integer>> getAutorStats() {

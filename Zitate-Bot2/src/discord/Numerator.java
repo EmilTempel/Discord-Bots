@@ -11,9 +11,10 @@ import handler.Handler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.exceptions.ContextException;
 
 public class Numerator {
-	
+
 	static int ID_len = 4;
 	static int range;
 	static Random random = new Random(69);
@@ -23,24 +24,24 @@ public class Numerator {
 			range *= 10 - i;
 		}
 	}
-	
+
 	Guild g;
 	UserInformation ui;
 	List<Integer> usedIDs, IDPool;
-	
+
 	public Numerator(Guild g, UserInformation ui) {
 		usedIDs = ui.orElseGet("guild", "usedIDs", ArrayList.class, new ArrayList<Integer>());
 		IDPool = IntStream.range(0, range).filter(a -> !usedIDs.contains(a)).boxed().collect(Collectors.toList());
 		this.g = g;
 		this.ui = ui;
 	}
-	
+
 	public void numerate() {
 		List<Zitat> zitate = ui.get("guild", "zitate", ArrayList.class);
-		for(Message m : ui.getZitatLoader().loader.messages) {
+		for (Message m : ui.getZitatLoader().loader.messages) {
 			Zitat zitat = null;
-			for(Zitat z : zitate) {
-				if(z != null && z.getChannel().equals(m.getChannel().getName()) && z.getID().equals(m.getId())) {
+			for (Zitat z : zitate) {
+				if (z != null && z.getChannel().equals(m.getChannel().getName()) && z.getID().equals(m.getId())) {
 					zitat = z;
 					break;
 				}
@@ -68,10 +69,9 @@ public class Numerator {
 					Handler.addReaction(m, Emoji.values()[digits[i]]);
 				}
 			}
-
 		}
 	}
-	
+
 	public boolean isCorrectlyNumerated(Message m, int[] digits) {
 		List<MessageReaction> reactions = m.getReactions();
 
