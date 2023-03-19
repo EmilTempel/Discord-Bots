@@ -93,6 +93,21 @@ public class UserInformation {
 			return convertInstanceOfObject(users.get(UserID).get(key), clazz);
 		}
 	}
+	
+	public <E> E orElseGet(String UserID, String key, Class<E> clazz, E root) {
+		E erg;
+		if (users.get(UserID) == null || users.get(UserID).get(key) == null) {
+			erg = null;
+		} else {
+			erg = convertInstanceOfObject(users.get(UserID).get(key), clazz);
+		}
+		if(erg == null) {
+			put(UserID, key, root);
+			erg = root;
+		}
+		save();
+		return erg;
+	}
 
 	public void load() {
 		users = new HashMap<String, HashMap<String, Object>>();
@@ -132,6 +147,7 @@ public class UserInformation {
 			BufferedWriter b = new BufferedWriter(new FileWriter(path));
 			b.write(str);
 			b.close();
+			System.out.println("saved");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

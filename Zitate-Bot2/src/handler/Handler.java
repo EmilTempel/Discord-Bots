@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat.Type;
@@ -39,6 +39,7 @@ import discord.ActionMessage;
 import discord.Configuration;
 import discord.Emoji;
 import discord.Game;
+import discord.Numerator;
 import discord.ScrollMessage;
 import discord.UserInformation;
 import discord.Zitat;
@@ -48,7 +49,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
@@ -101,55 +101,52 @@ public class Handler implements AudioSendHandler {
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-		this.zitate = userinfo.getZitatLoader().getZitate();
-		userinfo.put("guild", "zitate", zitate);
+		this.zitate = userinfo.orElseGet("guild", "zitate", ArrayList.class, userinfo.getZitatLoader().getZitate());
+		Numerator numerator = new Numerator(g, userinfo);
+		Thread t = new Thread(numerator::numerate);
+		t.start();
 
 		userinfo.put("guild", "ActionMessages", new ArrayList<ActionMessage>());
 		userinfo.put("guild", "ActionEmojis", new ArrayList<Emoji>());
 
-		commands = new Command[] { new MessageCommand('<', new String[] { "stats" },
-				new String[][] { new String[] { "\\w+" } }, this::cmdStats),
+		char prefix = '<';
+		commands = new Command[] {
+				new MessageCommand(prefix, new String[] { "stats" }, new String[][] { { "\\w+" } }, this::cmdStats),
+				new MessageCommand(prefix, new String[] { "search" }, new String[][] { { "\\w+" } }, this::cmdSearch),
 				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
-					zitate.add(userinfo.getZitatLoader().getZitat(e.getChannel().getId()+"/"+e.getMessageId()));
+					zitate.add(userinfo.getZitatLoader().getZitat(e.getChannel().getId() + "/" + e.getMessageId()));
 				}), // <rate || <rate 1
-				new MessageCommand('<', new String[] { "rate", "r" }, new String[][] { new String[] {} },
-						this::cmdRate),
-				new MessageCommand('<', new String[] { "loadScores" }, new String[][] { new String[] {} },
-						this::cmdLoadScores),
-				new MessageCommand('<', new String[] { "top" },
-						new String[][] { new String[] {}, new String[] { "\\d+" } }, this::cmdTop),
-				new MessageCommand('<', new String[] { "spiel", "s" }, new String[][] { new String[] { "\\d+" } },
+				new MessageCommand(prefix, new String[] { "rate", "r" }, new String[][] { {} }, this::cmdRate),
+				new MessageCommand(prefix, new String[] { "loadScores" }, new String[][] { {} }, this::cmdLoadScores),
+				new MessageCommand(prefix, new String[] { "top" },
+						new String[][] { new String[] {}}, this::cmdTop),
+				new MessageCommand(prefix, new String[] { "spiel", "s" }, new String[][] { { "\\d+" } },
 						this::cmdSpiel),
-				new MessageCommand('<', new String[] { "guess", "g" }, new String[][] { new String[] { ".+" } },
-						this::cmdGuess),
-				new MessageCommand('<', new String[] { "skip" }, new String[][] { new String[] {} }, this::cmdSkip),
-				new MessageCommand('<', new String[] { "ergebnisse", "e" }, new String[][] { new String[] {} },
+				new MessageCommand(prefix, new String[] { "guess", "g" }, new String[][] { { ".+" } }, this::cmdGuess),
+				new MessageCommand(prefix, new String[] { "skip" }, new String[][] { {} }, this::cmdSkip),
+				new MessageCommand(prefix, new String[] { "ergebnisse", "e" }, new String[][] { {} },
 						this::cmdErgebnisse),
-				new MessageCommand('<', new String[] { "schach" },
+				new MessageCommand(prefix, new String[] { "schach" },
 						new String[][] { new String[] {}, new String[] { "[a-h]\\d->[a-h]\\d" } }, this::cmdSchach),
-				new MessageCommand('<', new String[] { "trza" }, new String[][] { new String[] {} },
+				new MessageCommand(prefix, new String[] { "trza" }, new String[][] { {} },
 						this::cmdToggleRandomZitatAudio),
-				new MessageCommand('<', new String[] { "config" },
+				new MessageCommand(prefix, new String[] { "config" },
 						new String[][] { new String[] { "[1-2]", "\\w+", "[0-1]" } }, this::cmdConfig),
-				new MessageCommand('<', new String[] { "participate" }, new String[][] { new String[] {} },
-						this::cmdParticipate),
-				new MessageCommand('<', new String[] { "leaveSupercoolesEvent" }, new String[][] { new String[] {} },
+				new MessageCommand(prefix, new String[] { "participate" }, new String[][] { {} }, this::cmdParticipate),
+				new MessageCommand(prefix, new String[] { "leaveSupercoolesEvent" }, new String[][] { {} },
 						this::cmdLeaveEvent),
-				new MessageCommand('<', new String[] { "trade" }, new String[][] {
-						new String[] { "\\w+", "(\\d+\\.\\d+)|(\\d+)", "((\\d+,)*\\d+)|n", "((\\d+,)*\\d+)|n" } },
+				new MessageCommand(prefix, new String[] { "trade" },
+						new String[][] { { "\\w+", "(\\d+\\.\\d+)|(\\d+)", "((\\d+,)*\\d+)|n", "((\\d+,)*\\d+)|n" } },
 						this::cmdTrade),
-				new MessageCommand('<', new String[] { "addTag" }, new String[][] { new String[] { ".+" } },
-						this::cmdaddTag),
-				new MessageCommand('<', new String[] { "removeTag" }, new String[][] { new String[] { ".+" } },
+				new MessageCommand(prefix, new String[] { "addTag" }, new String[][] { { ".+" } }, this::cmdaddTag),
+				new MessageCommand(prefix, new String[] { "removeTag" }, new String[][] { { ".+" } },
 						this::cmdremoveTag),
-				new MessageCommand('<', new String[] { "showTags" }, new String[][] { new String[0] },
-						this::cmdshowTags),
-				new MessageCommand('<', new String[] { "assignTag" },
-						new String[][] { new String[0], new String[] { "\\d+" }, new String[] { "(.+,)*.+" } },
-						this::cmdassignTag),
-				new MessageCommand('<', new String[] { "inventory", "inv", "i" }, new String[][] { new String[0] },
+				new MessageCommand(prefix, new String[] { "showTags" }, new String[][] { {} }, this::cmdshowTags),
+				new MessageCommand(prefix, new String[] { "assignTag" },
+						new String[][] { {}, { "\\d+" }, { "(.+,)*.+" } }, this::cmdassignTag),
+				new MessageCommand(prefix, new String[] { "inventory", "inv", "i" }, new String[][] { {} },
 						this::cmdInventory),
-				new MessageCommand('<', new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
+				new MessageCommand(prefix, new String[] { "test" }, new String[][] { null }, (e, cmd_body) -> {
 					sendScrollMessage("Jakob der Hurensohn", "der Peniskopf",
 							new String[][][] {
 									new String[][] { new String[] { "hallo", "test", "true" },
@@ -164,12 +161,11 @@ public class Handler implements AudioSendHandler {
 							e.getChannel());
 				}), new TimedCommand(/* name = */"save UserInfo", /* period = */ 1000 * 60, (e, cmd_body) -> {
 					userinfo.save();
-				}),
-				new MessageCommand('<', new String[] { "owteam", "ow" }, new String[][] { new String[] {} },
-						this::cmdOwTeam),
+					System.out.println("saved");
+				}), new MessageCommand(prefix, new String[] { "owteam", "ow" }, new String[][] { {} }, this::cmdOwTeam),
 				new ReactionAddCommand(userinfo.get("guild", "ActionEmojis", ArrayList.class),
 						this::cmdResolveActionMessages)
-						
+
 				/*
 				 * , new TimedCommand( name = "updateMeinkraft", period = 1000 * 60,
 				 * this::updateMeinkraft)
@@ -181,6 +177,8 @@ public class Handler implements AudioSendHandler {
 
 		acceptParticipation = new ArrayList<Member>();
 		leaveEvent = new ArrayList<Member>();
+
+		Runtime.getRuntime().addShutdownHook(new Thread(userinfo::save));
 	}
 
 	public Command[] getCommands() {
@@ -209,7 +207,6 @@ public class Handler implements AudioSendHandler {
 
 	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
 		ScrollMessage sm = new ScrollMessage(this, g, null, null, title, description, content, 0);
-
 		channel.sendMessage(sm.getContent(0)).queue(m -> {
 			sm.setMessage(m);
 		});
@@ -238,7 +235,7 @@ public class Handler implements AudioSendHandler {
 			m.removeReaction(emoji, user).queue();
 		}
 	}
-	
+
 	public static void removeAllReactions(Message m) {
 		m.clearReactions().queue();
 	}
@@ -374,6 +371,11 @@ public class Handler implements AudioSendHandler {
 		sendMessage(erg, e.getChannel());
 	}
 
+	public void cmdSearch(GuildMessageReceivedEvent e, String[] cmd_body) {
+		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().contains(cmd_body[0])).toList();
+		sendScrollMessage("Alle Zitate die \"" + cmd_body[0] + "\" enthalten", "", toScrollContent(searched, 10, z -> ""), e.getChannel());
+	}
+
 	public void cmdRate(GuildMessageReceivedEvent e, String[] cmd_body) {
 //		loadScores();
 		Zitat[] temp = new Zitat[2];
@@ -447,38 +449,8 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		String erg = "";
-		int top = 0;
-		if (cmd_body.length > 0) {
-			top = top < zitate.size() ? Integer.parseInt(cmd_body[0]) : zitate.size() - 1;
-
-		} else {
-			top = 10;
-		}
-
-		if (top < 0)
-			top = 1;
-
-		if (top >= zitate.size())
-			top = zitate.size();
-
-		Map<String, Integer> map = new HashMap<String, Integer>();
-
-		for (Zitat z : zitate) {
-			Integer[] score = z.getScore();
-			map.put(z.getPath(), score[2]);
-		}
-
-		String sorted = toString(map.entrySet(), true, false, true);
-
-		String[] best = sorted.split(",");
-
-		for (int i = top > 10 ? top - 10 : 0; i < top; i++) {
-			Zitat z = getZitat(best[i]);
-			erg += i + ". " + z.getAll() + " :" + z.getScore()[2] + "\n";
-		}
-
-		sendMessage(erg, e.getChannel());
+		List<Zitat> sorted = zitate.stream().sorted((a,b) -> Integer.compare(a.getScore()[2], b.getScore()[2])).toList();
+		sendScrollMessage("Die Top Zitate allerzeiten", "", toScrollContent(sorted, 10, z -> " (" + z.getScore()[2] + ")"), e.getChannel());
 	}
 
 	public Set<Entry<String, Integer>> getAutorStats() {
@@ -544,6 +516,24 @@ public class Handler implements AudioSendHandler {
 			str += e.getKey() + (value ? ": " + e.getValue() : "") + (seperated ? "," : "\n");
 		}
 		return str != null ? str : ":(";
+	}
+
+	public static String[][][] toScrollContent(List<Zitat> list, int pageSize, Function<Zitat, String> title) {
+		String[][][] content = new String[list.size() / pageSize + 1][][];
+
+		for (int i = 0; i < content.length; i++) {
+			if (i == content.length - 1) {
+				content[i] = new String[list.size() % pageSize][];
+			} else {
+				content[i] = new String[pageSize][];
+			}
+
+			for (int j = 0; j < content[i].length; j++) {
+				Zitat z = list.get(i * pageSize + j);
+				content[i][j] = new String[] { (i * pageSize + j + 1) + "." + title.apply(z), z.getAll(), "false" };
+			}
+		}
+		return content;
 	}
 
 	public void cmdSpiel(GuildMessageReceivedEvent e, String[] cmd_body) {

@@ -17,7 +17,7 @@ public class Zitat extends Dropable {
 
 	public Zitat(Message msg) {
 		String z = msg.getContentRaw();
-		if (z.charAt(0) == '"') {
+		if (z.length() > 0 && z.charAt(0) == '"') {
 			for (int i = 1; i < z.length(); i++) {
 				if (z.charAt(i) == '"') {
 					inhalt = z.substring(0, i + 1);
@@ -128,7 +128,7 @@ public class Zitat extends Dropable {
 	}
 
 	public String toString() {
-		return UserInformation.ArrayToString(new Object[] { channel, ID, score, tags, besitzer });
+		return UserInformation.ArrayToString(new Object[] { channel, ID, score, tags, besitzer, number});
 	}
 
 	public void drop(UserInformation ui, String UserId) {

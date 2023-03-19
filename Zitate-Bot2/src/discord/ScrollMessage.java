@@ -1,16 +1,14 @@
 package discord;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import discord.ActionMessage.Action;
 import handler.Handler;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
-import net.dv8tion.jda.api.entities.MessageReaction;
-import net.dv8tion.jda.api.entities.User;
 
 public class ScrollMessage {
 
@@ -20,11 +18,12 @@ public class ScrollMessage {
 	String[][][] content_raw;
 	MessageEmbed[] content;
 	int page, item;
-	Emoji left, right, up, down;
+	Emoji left, right, up, down, accept;
+	Action acceptAction;
 	Message m;
 
 	public ScrollMessage(Handler handler, Guild g, String channel, String MessageId, String title, String description,
-			String[][][] content_raw, int page, Emoji left, Emoji right, Emoji up, Emoji down) {
+			String[][][] content_raw, int page, Action acceptAction ,Emoji left, Emoji right, Emoji up, Emoji down, Emoji accept) {
 		this.handler = handler;
 		this.g = g;
 		this.channel = channel;
@@ -39,14 +38,16 @@ public class ScrollMessage {
 		this.right = right;
 		this.up = up;
 		this.down = down;
+		this.accept = accept;
 		
+		this.acceptAction = acceptAction;
 		
 	}
 
 	public ScrollMessage(Handler handler, Guild g, String channel, String MessageId, String title, String description,
 			String[][][] content_raw, int page) {
-		this(handler, g, channel, MessageId, title, description, content_raw, page, Emoji.arrow_left, Emoji.arrow_right,
-				Emoji.arrow_up, Emoji.arrow_down);
+		this(handler, g, channel, MessageId, title, description, content_raw, page, (e,m) -> {}, Emoji.arrow_left, Emoji.arrow_right,
+				Emoji.arrow_up, Emoji.arrow_down, Emoji.white_check_mark);
 	}
 
 	public ScrollMessage(Handler handler, Guild g, Message m, String title, String description, String[][][] content_raw, int page) {
@@ -104,12 +105,11 @@ public class ScrollMessage {
 	
 	public void addActionMessage(Message message) {
 		ActionMessage am = new ActionMessage(message, true);
-		am.addAction(left, (e,m) -> {flip(-1);
-			System.out.println(e);
-			});
+		am.addAction(left, (e,m) -> flip(-1));
 		am.addAction(right, (e,m) -> flip(1));
-		am.addAction(up, (e,m) -> flyp(-1));
 		am.addAction(down, (e,m) -> flyp(1));
+		am.addAction(up, (e,m) -> flyp(-1));
+		
 		handler.addActionMessage(am);
 	}
 

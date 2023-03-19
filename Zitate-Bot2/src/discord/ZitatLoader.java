@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 import handler.Handler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -14,9 +16,10 @@ import potatocoin.Dropable.Rarity;
 
 public class ZitatLoader {
 
-	static final int ID_len = 4;
+	
 
 	Guild g;
+	
 	MessageLoader loader;
 	HashMap<String, Zitat> z;
 
@@ -26,7 +29,6 @@ public class ZitatLoader {
 		z = new HashMap<String, Zitat>();
 		load();
 		assignRarity();
-//		numerate();
 	}
 
 	public void load() {
@@ -35,8 +37,7 @@ public class ZitatLoader {
 			Zitat zitat = new Zitat(m);
 			if (zitat.isFull()) {
 				z.put(zitat.getPath(), zitat);
-				zitat.setNumber(c);
-				c++;
+				zitat.setNumber(-1);
 			}
 		}
 	}
@@ -50,9 +51,9 @@ public class ZitatLoader {
 		zitate.sort((z1, z2) -> z2.getScore()[2] - z1.getScore()[2]);
 
 		for (int i = 0; i < zitate.size(); i++) {
-			double percent = (i + 1) / zitate.size();
+			double percent = (i + 1) / (double) zitate.size();
 			for (Rarity r : Rarity.values()) {
-				if (percent >= r.getPercent()) {
+				if (percent >= 1 - r.getPercent()) {
 					zitate.get(i).setRarity(r);
 				}
 			}
@@ -69,13 +70,14 @@ public class ZitatLoader {
 
 	public Zitat getZitat(Object[] values) {
 		Zitat z = null;
-		if (values.length == 5) {
+		if (values.length == 6) {
 			z = getZitat((String) values[0], (String) values[1]);
 			if (z != null) {
 				z.setScore(UserInformation.convertInstanceOfObject(values[2], Integer[].class));
 				System.out.println(Arrays.deepToString(z.getScore()));
 				z.setTags(values[3] != null ? (ArrayList<String>) values[3] : new ArrayList<String>());
 				z.setBesitzer((String) values[4]);
+				z.setNumber((Integer) values[5]);
 			}
 		}
 		return z;
@@ -91,7 +93,6 @@ public class ZitatLoader {
 			Zitat zitat = new Zitat(m);
 			if (zitat.isFull()) {
 				z.put(zitat.getPath(), zitat);
-				numerate(m);
 				return zitat;
 			} else {
 				return null;
@@ -101,102 +102,16 @@ public class ZitatLoader {
 		}
 	}
 
-	public void numerate() {
+	
+	
+	public void clear() {
+		int c = 0;
 		for (Message m : loader.messages) {
-			numerate(m);
+			m.clearReactions().complete();
+			System.out.println("cleared nmbr. " + c++);
 		}
 	}
 
-	public void numerate(Message m) {
-		Zitat z = getZitat(m.getChannel().getName(), m.getId());
-		if (z != null) {
-			int[] digits = IDealize(z.getNumber(), ID_len);
-			if (!isCorrectlyNumerated(m, digits)) {
-
-				for (int i = 0; i < digits.length; i++) {
-					System.out.println(Emoji.values()[digits[i]]);
-					Handler.addReaction(m, Emoji.values()[digits[i]]);
-
-				}
-			}
-
-		}
-	}
-
-	public boolean isCorrectlyNumerated(Message m, int[] digits) {
-		List<MessageReaction> reactions = m.getReactions();
-
-		if (reactions.size() != ID_len) {
-			return false;
-		}
-		for (int i = 0; i < ID_len; i++) {
-			Emoji emoji = Emoji.fromUnicode(reactions.get(i).getReactionEmote().getAsCodepoints());
-			if (emoji == null || emoji.ordinal() != digits[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public static int[] getFactors(int len) {
-		int[] factor = new int[len];
-		factor[len - 1] = 1;
-		for (int i = len - 2; i >= 0; i--) {
-			factor[i] = factor[i + 1] * (9 - i);
-		}
-		return factor;
-	}
-
-	public static int[] IDealize(int n, int len) {
-		int[] factor = getFactors(len);
-
-//		int[] idx = { n / 504, n % 504 / 56, n % 504 % 56 / 7, n % 504 % 56 % 7 };
-		int[] idx = new int[len];
-		for (int i = 0; i < len; i++) {
-			int index = n;
-			for (int j = 0; j < i; j++)
-				index %= factor[j];
-			idx[i] = index / factor[i];
-		}
-
-		int[] erg = new int[len];
-
-		System.out.println();
-		System.out.println(Arrays.toString(idx));
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		for (int i = 0; i < 10; i++) {
-			list.add(i);
-		}
-
-		for (int i = 0; i < erg.length; i++) {
-			erg[i] = list.get(idx[i]);
-			list.remove((Integer) list.get(idx[i]));
-		}
-
-		return erg;
-	}
-
-	public static int reIDealize(int[] arr) {
-		int[] factor = getFactors(arr.length);
-		System.out.println(Arrays.toString(factor));
-
-		int erg = 0;
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		for (int i = 0; i < 10; i++) {
-			list.add(i);
-		}
-
-		for (int i = 0; i < arr.length; i++) {
-			erg += list.indexOf(arr[i]) * factor[i];
-			list.remove((Integer) arr[i]);
-		}
-		return erg;
-	}
-
-	public static void main(String[] args) {
-		for (int i = 0; i < 1000; i++) {
-			int[] l = IDealize(i, 7);
-			System.out.println(Arrays.toString(l) + "  " + reIDealize(l));
-		}
-	}
+	
+	
 }
