@@ -35,7 +35,7 @@ public class ZitatMaster extends Bot {
 			if (!f.exists())
 				f.mkdir();
 
-			UserInformation ui = new UserInformation(g);
+			UserInformation ui = new UserInformation(g,new String[]{"nostalgie-zitate", "zitate"});
 
 			Handler handler = new Handler(g, ui);
 

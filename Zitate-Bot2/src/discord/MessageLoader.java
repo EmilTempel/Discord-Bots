@@ -32,6 +32,10 @@ public class MessageLoader {
 	public Message getMessage(String path) {
 		return m.get(path);
 	}
+	
+	public void addMessage(String path, Message message) {
+		m.put(path, message);
+	}
 
 	public void load(String c) {
 		TextChannel channel = g.getTextChannelsByName(c, true).size() > 0 ? g.getTextChannelsByName(c, true).get(0)

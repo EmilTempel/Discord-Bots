@@ -17,9 +17,9 @@ public class Zitat extends Dropable {
 
 	public Zitat(Message msg) {
 		String z = msg.getContentRaw();
-		if (z.length() > 0 && z.charAt(0) == '"') {
+		if (z.length() > 0 && (z.charAt(0) == '"' || z.charAt(0) == '“' || z.charAt(0) == '„')) {
 			for (int i = 1; i < z.length(); i++) {
-				if (z.charAt(i) == '"') {
+				if (z.charAt(i) == '"' || z.charAt(i) == '“') {
 					inhalt = z.substring(0, i + 1);
 					for (int j = i + 1; j < z.length(); j++) {
 						if (z.charAt(j) == '-') {

@@ -11,7 +11,7 @@ import handler.Handler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
-import net.dv8tion.jda.api.exceptions.ContextException;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 public class Numerator {
 
@@ -66,7 +66,12 @@ public class Numerator {
 				m.clearReactions().complete();
 				for (int i = 0; i < digits.length; i++) {
 					System.out.println(Emoji.values()[digits[i]]);
-					Handler.addReaction(m, Emoji.values()[digits[i]]);
+					try {
+						Handler.addReactionComplete(m, Emoji.values()[digits[i]]);
+					} catch (ErrorResponseException e) {
+						System.out.println("skipped");
+						break;
+					}
 				}
 			}
 		}

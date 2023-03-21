@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFileFormat.Type;
@@ -55,7 +57,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
-import net.dv8tion.jda.api.exceptions.ContextException;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.managers.AudioManager;
 import potatocoin.Challenge;
 import potatocoin.GnocciGangException;
@@ -92,6 +94,7 @@ public class Handler implements AudioSendHandler {
 	Timer t;
 	final int periodMillis = 500000;
 	final double probability = 1;
+	Numerator numerator;
 
 	AudioManager manager;
 
@@ -102,8 +105,10 @@ public class Handler implements AudioSendHandler {
 	public Handler(Guild g, UserInformation userinfo) {
 		this.g = g;
 		this.userinfo = userinfo;
-		this.zitate = userinfo.orElseGet("guild", "zitate", ArrayList.class, userinfo.getZitatLoader().getZitate());
-		Numerator numerator = new Numerator(g, userinfo);
+		userinfo.put("guild", "zitate", userinfo.getZitatLoader().getZitate());
+		this.zitate = userinfo.get("guild", "zitate", ArrayList.class);
+
+		numerator = new Numerator(g, userinfo);
 		Thread t = new Thread(numerator::numerate);
 		t.start();
 
@@ -114,15 +119,15 @@ public class Handler implements AudioSendHandler {
 		char prefix = '<';
 		commands = new Command[] {
 				new MessageCommand(prefix, new String[] { "stats" }, new String[][] { { "\\w+" } }, this::cmdStats),
-				new MessageCommand(prefix, new String[] { "search" }, new String[][] { { "\\w+" } }, this::cmdSearch),
-				new MessageCommand('"', null, new String[][] { null }, (e, s) -> {
-					zitate.add(userinfo.getZitatLoader().getZitat(e.getChannel().getId() + "/" + e.getMessageId()));
-				}), // <rate || <rate 1
+				new MessageCommand(prefix, new String[] { "search" },
+						new String[][] { { "\\w+" }, { "\\w+", "sorted" } }, this::cmdSearch),
+				new MessageCommand('"', null, new String[][] { null }, this::cmdNewZitat), // <rate || <rate 1
 				new MessageCommand(prefix, new String[] { "rate", "r" }, new String[][] { {} }, this::cmdRate),
-				new MessageCommand(prefix, new String[] { "loadScores" }, new String[][] { {} }, this::cmdLoadScores),
 				new MessageCommand(prefix, new String[] { "top" }, new String[][] { new String[] {} }, this::cmdTop),
 				new MessageCommand(prefix, new String[] { "spiel", "s" }, new String[][] { { "\\d+" } },
 						this::cmdSpiel),
+				new MessageCommand(prefix, new String[] { "loadScores" }, new String[][] { { ".+" } },
+						(e, cmd_body) -> loadScores(cmd_body[0])),
 				new MessageCommand(prefix, new String[] { "guess", "g" }, new String[][] { { ".+" } }, this::cmdGuess),
 				new MessageCommand(prefix, new String[] { "skip" }, new String[][] { {} }, this::cmdSkip),
 				new MessageCommand(prefix, new String[] { "ergebnisse", "e" }, new String[][] { {} },
@@ -179,7 +184,10 @@ public class Handler implements AudioSendHandler {
 		acceptParticipation = new ArrayList<Member>();
 		leaveEvent = new ArrayList<Member>();
 
-		Runtime.getRuntime().addShutdownHook(new Thread(userinfo::save));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			deleteActionMessages();
+			userinfo.save();
+		}));
 
 		deleteActionMessages();
 	}
@@ -208,6 +216,10 @@ public class Handler implements AudioSendHandler {
 		channel.deleteMessageById(messageId).queue();
 	}
 
+	public static void deleteMessageComplete(String messageId, TextChannel channel) throws ErrorResponseException {
+		channel.deleteMessageById(messageId).complete();
+	}
+
 	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
 		ScrollMessage sm = new ScrollMessage(this, g, null, null, title, description, content, 0);
 		channel.sendMessage(sm.getContent(0)).queue(m -> {
@@ -226,7 +238,11 @@ public class Handler implements AudioSendHandler {
 	public void deleteActionMessages() {
 		for (Object o : userinfo.get("guild", "AMstoDelete", ArrayList.class)) {
 			String[] s = (String[]) o;
-			deleteMessage(s[1], g.getTextChannelById(s[0]));
+			try {
+				deleteMessageComplete(s[1], g.getTextChannelById(s[0]));
+			} catch (ErrorResponseException e) {
+
+			}
 		}
 		userinfo.put("guild", "AMstoDelete", new ArrayList<String[]>());
 	}
@@ -234,6 +250,12 @@ public class Handler implements AudioSendHandler {
 	public static void addReaction(Message m, Emoji emoji) {
 		if (m != null) {
 			m.addReaction(emoji.code).queue();
+		}
+	}
+
+	public static void addReactionComplete(Message m, Emoji emoji) throws ErrorResponseException {
+		if (m != null) {
+			m.addReaction(emoji.code).complete();
 		}
 	}
 
@@ -305,7 +327,7 @@ public class Handler implements AudioSendHandler {
 
 	}
 
-	public void loadScores(HashMap<String, Integer[]> scores, String path) {
+	public void loadScores(String path) {
 		BufferedReader reader;
 		try {
 			if (new File(path).exists()) {
@@ -325,7 +347,13 @@ public class Handler implements AudioSendHandler {
 						score[2] = Integer.parseInt(split[3]);
 					}
 
-					scores.put(split[0], score);
+					for (Zitat z : zitate) {
+						if (z.getID().equals(split[0])) {
+							z.setScore(score);
+							System.out.println(Arrays.toString(score));
+							break;
+						}
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -352,16 +380,14 @@ public class Handler implements AudioSendHandler {
 
 	}
 
-	public void cmdLoadScores(GuildMessageReceivedEvent e, String[] cmd_body) {
-		HashMap<String, Integer[]> scores = new HashMap<String, Integer[]>();
-		loadScores(scores, "zitat_scores");
-		System.out.println(scores);
-		System.out.println("true");
-		for (Entry<String, Integer[]> entry : scores.entrySet()) {
-			for (Zitat z : zitate) {
-				if (z.getID().equals(entry.getKey())) {
-					z.setScore(entry.getValue());
-				}
+	public void cmdNewZitat(GuildMessageReceivedEvent e, String[] cmd_body) {
+		if (Arrays.stream(userinfo.getChannels()).anyMatch(a -> a.equals(e.getChannel().getName()))) {
+			String path = e.getChannel().getId() + "/" + e.getMessageId();
+			userinfo.getZitatLoader().getMessageLoader().addMessage(path, e.getMessage());
+			Zitat z = userinfo.getZitatLoader().getZitat(path);
+			if (z != null) {
+				zitate.add(z);
+				numerator.numerate(z, e.getMessage());
 			}
 		}
 	}
@@ -385,7 +411,12 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdSearch(GuildMessageReceivedEvent e, String[] cmd_body) {
-		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().contains(cmd_body[0])).toList();
+		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().contains(cmd_body[0]))
+				.collect(Collectors.toList());
+		if (cmd_body.length == 2) {
+			searched.sort((a, b) -> Integer.compare(b.getScore()[2], a.getScore()[2]));
+		}
+
 		sendScrollMessage("Alle " + searched.size() + " Zitate die \"" + cmd_body[0] + "\" enthalten", "",
 				toScrollContent(searched, 10, z -> ""), e.getChannel());
 	}
@@ -422,7 +453,6 @@ public class Handler implements AudioSendHandler {
 
 	public String getNewRateMessage(GuildMessageReceivedEvent e, Zitat[] temp) {
 		String id = e.getAuthor().getId();
-		int c = 0;
 
 		System.out.println(id);
 
@@ -463,7 +493,7 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		List<Zitat> sorted = zitate.stream().sorted((a, b) -> Integer.compare(a.getScore()[2], b.getScore()[2]))
+		List<Zitat> sorted = zitate.stream().sorted((a, b) -> Integer.compare(b.getScore()[2], a.getScore()[2]))
 				.toList();
 		sendScrollMessage("Die Top Zitate allerzeiten", "",
 				toScrollContent(sorted, 10, z -> " (" + z.getScore()[2] + ")"), e.getChannel());

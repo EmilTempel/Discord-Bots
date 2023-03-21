@@ -67,7 +67,7 @@ public class LootBox {
 		Potaemom(standard_sigma, 0.5, 0, ui -> null, 150, "die Lootbox für alle deine Potaemon-Needs"),
 		Boss(standard_sigma, 0.75, 0, Type::getAvailableZitate, 200, "Premium-Lootbox mit meistens sehr guten Zitaten"),
 		ExtremeDangerDangerHighDanger(standard_sigma, 0.5, getT(standard_sigma), Type::getZitate, 100,
-				"gefährliche Lootbox mit einem entweder sehr guten oder sehr schlechten Zitat");
+				"gefährliche Lootbox mit einem entweder sehr guten oder sehr schlechten Zitat (sehr gefährlich aber auch sehr lecker)");
 
 		double sigma, myu, t;
 		Function f;

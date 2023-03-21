@@ -21,15 +21,17 @@ public class UserInformation {
 
 	Guild g;
 	ZitatLoader z_loader;
+	String[] channels;
 	HashMap<String, HashMap<String, Object>> users;
 
 	String path;
 
 	Converter[] converters;
 
-	public UserInformation(Guild g) {
+	public UserInformation(Guild g, String[] channels) {
 		this.g = g;
-		this.z_loader = new ZitatLoader(g, "nostalgie-zitate", "zitate");
+		this.channels = channels;
+		this.z_loader = new ZitatLoader(g, channels);
 		this.path = "Guild/" + g.getId() + "/userinfo";
 		File f = new File(path);
 		if (!f.exists())
@@ -366,6 +368,10 @@ public class UserInformation {
 
 	public ZitatLoader getZitatLoader() {
 		return z_loader;
+	}
+	
+	public String[] getChannels() {
+		return channels;
 	}
 
 	class Converter {

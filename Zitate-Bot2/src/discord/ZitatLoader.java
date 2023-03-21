@@ -16,8 +16,6 @@ import potatocoin.Dropable.Rarity;
 
 public class ZitatLoader {
 
-	
-
 	Guild g;
 	
 	MessageLoader loader;
@@ -32,7 +30,6 @@ public class ZitatLoader {
 	}
 
 	public void load() {
-		int c = 0;
 		for (Message m : loader.messages) {
 			Zitat zitat = new Zitat(m);
 			if (zitat.isFull()) {
@@ -102,7 +99,9 @@ public class ZitatLoader {
 		}
 	}
 
-	
+	public MessageLoader getMessageLoader() {
+		return loader;
+	}
 	
 	public void clear() {
 		int c = 0;
