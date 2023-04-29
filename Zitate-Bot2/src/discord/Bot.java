@@ -1,6 +1,8 @@
 package discord;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +23,8 @@ public class Bot {
 	ArrayList<Listener> listeners;
 
 	public Bot(String token) throws LoginException {
-		jda = JDABuilder.createDefault(token).setMemberCachePolicy(MemberCachePolicy.ALL).enableIntents(GatewayIntent.GUILD_MEMBERS).build();
+		jda = JDABuilder.createDefault(token).setMemberCachePolicy(MemberCachePolicy.ALL)
+				.enableIntents(GatewayIntent.GUILD_MEMBERS).build();
 		listeners = new ArrayList<Listener>();
 	}
 
@@ -35,9 +38,8 @@ public class Bot {
 	}
 
 	public static void main(String[] args) throws LoginException {
-		
 		String token = "";
-		
+
 		try {
 			BufferedReader b = new BufferedReader(new FileReader("C:/Users/Public/Documents/Zitate-Bot/token.txt"));
 			token = b.readLine();
@@ -46,10 +48,22 @@ public class Bot {
 			e.printStackTrace();
 		}
 		ZitatMaster t_d = new ZitatMaster(token);
-		
+
 		JFrame frame = new JFrame("Zitate-Bot");
-		frame.setSize(100,100);
+		frame.setSize(100, 100);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+
+		File f = new File("test123.txt");
+
+		try (FileReader r = new FileReader(f); BufferedReader reader = new BufferedReader(r)) {
+			frame.setTitle(reader.readLine());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

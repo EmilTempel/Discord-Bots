@@ -1,6 +1,7 @@
 package discord;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import discord.ActionMessage.Action;
 import handler.Handler;
@@ -52,7 +53,7 @@ public class ScrollMessage {
 
 	public ScrollMessage(Handler handler, Guild g, Message m, String title, String description, String[][][] content_raw, int page) {
 		this(handler, g, m.getChannel().getName(), m.getId(),title, description, content_raw, page);
-		setMessage(m);
+		setMessage(m, null);
 	}
 
 	public MessageEmbed[] from3DStringArray(String[][][] content) {
@@ -96,19 +97,25 @@ public class ScrollMessage {
 		return (this.channel.equals(channel) && this.MessageId.equals(MessageId));
 	}
 
-	public void setMessage(Message m) {
+	public void setMessage(Message m, Supplier<String[][][]> refresh) {
 		this.m = m;
 		this.channel = m.getChannel().getName();
 		this.MessageId = m.getId();
-		addActionMessage(m);
+		addActionMessage(m, refresh);
 	}
 	
-	public void addActionMessage(Message message) {
+	public void addActionMessage(Message message, Supplier<String[][][]> refresh) {
 		ActionMessage am = new ActionMessage(message, true);
 		am.addAction(left, (e,m) -> flip(-1));
 		am.addAction(right, (e,m) -> flip(1));
 		am.addAction(down, (e,m) -> flyp(1));
 		am.addAction(up, (e,m) -> flyp(-1));
+		if(refresh != null) {
+			am.addAction(Emoji.arrows_counterclockwise, (e,m) -> {
+				content = from3DStringArray(refresh.get());
+				flipTo(page);
+			});
+		}
 		
 		handler.addActionMessage(am);
 	}

@@ -7,7 +7,7 @@ import potatocoin.Dropable;
 import potatocoin.Inventory;
 import potatocoin.Shop;
 
-public class Zitat extends Dropable {
+public class Zitat extends Dropable implements Comparable<Zitat> {
 
 	String inhalt, autor, untertitel, schreiber, ID, channel;
 	Integer[] score;
@@ -44,6 +44,7 @@ public class Zitat extends Dropable {
 		score = new Integer[] { 0, 0, 0 };
 		tags = new ArrayList<String>();
 		besitzer = null;
+		number = -1;
 	}
 
 	public boolean isFull() {
@@ -135,6 +136,11 @@ public class Zitat extends Dropable {
 		Inventory i = ui.get(UserId, "inventory", Inventory.class);
 		i.addZitat(this);
 		besitzer = UserId;
+	}
+
+	@Override
+	public int compareTo(Zitat z) {
+		return Integer.compare(z.getScore()[2], this.getScore()[2]);
 	}
 	
 //	public enum Format{

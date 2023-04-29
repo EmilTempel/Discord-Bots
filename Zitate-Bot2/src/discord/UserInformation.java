@@ -25,6 +25,7 @@ public class UserInformation {
 	HashMap<String, HashMap<String, Object>> users;
 
 	String path;
+	File file;
 
 	Converter[] converters;
 
@@ -33,10 +34,10 @@ public class UserInformation {
 		this.channels = channels;
 		this.z_loader = new ZitatLoader(g, channels);
 		this.path = "Guild/" + g.getId() + "/userinfo";
-		File f = new File(path);
-		if (!f.exists())
+		file = new File(path);
+		if (!file.exists())
 			try {
-				f.createNewFile();
+				file.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -114,7 +115,7 @@ public class UserInformation {
 	public void load() {
 		users = new HashMap<String, HashMap<String, Object>>();
 		try {
-			BufferedReader b = new BufferedReader(new FileReader(path));
+			BufferedReader b = new BufferedReader(new FileReader(file));
 			String line = null;
 			while ((line = b.readLine()) != null) {
 				String[] split = line.split("->");
@@ -146,7 +147,7 @@ public class UserInformation {
 			str += entry.getKey() + "->" + toJSON(entry.getValue()) + "\n";
 		}
 		try {
-			BufferedWriter b = new BufferedWriter(new FileWriter(path));
+			BufferedWriter b = new BufferedWriter(new FileWriter(file));
 			b.write(str);
 			b.close();
 			System.out.println("saved");

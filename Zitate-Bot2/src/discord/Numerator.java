@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 public class Numerator {
 
-	static int ID_len = 4;
+	public static final int ID_len = 4;
 	static int range;
 	static Random random = new Random(69);
 	static {

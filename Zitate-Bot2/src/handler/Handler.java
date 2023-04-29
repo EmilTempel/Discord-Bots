@@ -22,6 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -221,9 +222,14 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel) {
+		sendScrollMessage(title, description, content, channel, null);
+	}
+
+	public void sendScrollMessage(String title, String description, String[][][] content, TextChannel channel,
+			Supplier<String[][][]> refresh) {
 		ScrollMessage sm = new ScrollMessage(this, g, null, null, title, description, content, 0);
 		channel.sendMessage(sm.getContent(0)).queue(m -> {
-			sm.setMessage(m);
+			sm.setMessage(m, refresh);
 		});
 	}
 
@@ -411,10 +417,10 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdSearch(GuildMessageReceivedEvent e, String[] cmd_body) {
-		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().contains(cmd_body[0]))
+		List<Zitat> searched = zitate.stream().filter(z -> z.getAll().toLowerCase().contains(cmd_body[0].toLowerCase()))
 				.collect(Collectors.toList());
 		if (cmd_body.length == 2) {
-			searched.sort((a, b) -> Integer.compare(b.getScore()[2], a.getScore()[2]));
+			searched.stream().sorted().toList();
 		}
 
 		sendScrollMessage("Alle " + searched.size() + " Zitate die \"" + cmd_body[0] + "\" enthalten", "",
@@ -493,10 +499,14 @@ public class Handler implements AudioSendHandler {
 	}
 
 	public void cmdTop(GuildMessageReceivedEvent e, String[] cmd_body) {
-		List<Zitat> sorted = zitate.stream().sorted((a, b) -> Integer.compare(b.getScore()[2], a.getScore()[2]))
-				.toList();
-		sendScrollMessage("Die Top Zitate allerzeiten", "",
-				toScrollContent(sorted, 10, z -> " (" + z.getScore()[2] + ")"), e.getChannel());
+		sendScrollMessage("Die Top Zitate allerzeiten", "", topInScrollContent(), e.getChannel(),
+				this::topInScrollContent);
+	}
+
+	public String[][][] topInScrollContent() {
+		List<Zitat> sorted = zitate.stream().sorted().toList();
+		return toScrollContent(sorted, 10,
+				z -> " (" + z.getScore()[2] + ") " + z.getScore()[0] + "/" + z.getScore()[1]);
 	}
 
 	public Set<Entry<String, Integer>> getAutorStats() {
@@ -1050,8 +1060,8 @@ public class Handler implements AudioSendHandler {
 		Inventory inv = userinfo.get(e.getAuthor().getId(), "Inventory", Inventory.class);
 		System.out.println(inv);
 
-		sendScrollMessage("Inventar von " + m.getNickname(), "" + (int) inv.getCoins(), inv.toFormat(m),
-				e.getChannel());
+//		sendScrollMessage("Inventar von " + m.getNickname(), "" + (int) inv.getCoins(), inv.toFormat(m),
+//				e.getChannel());
 
 	}
 

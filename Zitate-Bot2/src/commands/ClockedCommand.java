@@ -11,9 +11,7 @@ public class ClockedCommand extends TimedCommand{
 		this.time = time;
 	}
 	
-	public ClockedCommand(String name, ) {
-		this();
-	}
+	
 	
 	
 }

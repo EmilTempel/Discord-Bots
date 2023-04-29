@@ -59,14 +59,14 @@ public class LootBox {
 	}
 
 	public enum Type {
-		veryBad(standard_sigma, 0, 0, Type::getZitate, 20, "billige Lootbox mit schlechter Chance für gute Zitate"),
-		Basic(standard_sigma, 0.5, 0, Type::getZitate, 50, "normale Lootbox mit normalen Chancen"),
+		veryBad(standard_sigma, 0, 0, Type::getAvailableZitate, 20, "billige Lootbox mit schlechter Chance für gute Zitate"),
+		Basic(standard_sigma, 0.5, 0, Type::getAvailableZitate, 50, "normale Lootbox mit normalen Chancen"),
 		CoinMaster(standard_sigma, 0.5, 0, ui -> Money.getDistribution(), 15,
 				"mit dieser geilen Lootbox wirst auch du der Coin Master $$$"),
 		// TODO VVV
 		Potaemom(standard_sigma, 0.5, 0, ui -> null, 150, "die Lootbox für alle deine Potaemon-Needs"),
 		Boss(standard_sigma, 0.75, 0, Type::getAvailableZitate, 200, "Premium-Lootbox mit meistens sehr guten Zitaten"),
-		ExtremeDangerDangerHighDanger(standard_sigma, 0.5, getT(standard_sigma), Type::getZitate, 100,
+		ExtremeDangerDangerHighDanger(standard_sigma, 0.5, getT(standard_sigma), Type::getAvailableZitate, 100,
 				"gefährliche Lootbox mit einem entweder sehr guten oder sehr schlechten Zitat (sehr gefährlich aber auch sehr lecker)");
 
 		double sigma, myu, t;
