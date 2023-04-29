@@ -38,10 +38,19 @@ public class Bot {
 	}
 
 	public static void main(String[] args) throws LoginException {
-		String token = "";
-
+		String tokenDir = "",token = "";
+		
+		
 		try {
-			BufferedReader b = new BufferedReader(new FileReader("C:/Users/Public/Documents/Zitate-Bot/token.txt"));
+			BufferedReader b = new BufferedReader(new FileReader("tokenDir.txt"));
+			tokenDir = b.readLine();
+			b.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			BufferedReader b = new BufferedReader(new FileReader(tokenDir));
 			token = b.readLine();
 			b.close();
 		} catch (IOException e) {
